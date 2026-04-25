@@ -3,34 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --bg-0: #FAF9F5;
-  --bg-000: #FAF9F5;
-  --bg-100: #FFFFFF;
-  --bg-200: #F0EEE6;
-  --bg-300: #DDDDDD;
-  --text-100: #1F1E1D;
-  --text-200: #3D3D3A;
-  --text-300: #73726C;
-  --text-400: #888888;
-  --text-500: #999999;
-  --accent: #D97757;
-  --accent-hover: #C6613F;
-  --radius: 0.5rem;
-}
-
-.dark {
-  --bg-0: #212121;
-  --bg-000: #212121;
-  --bg-100: #262624;
-  --bg-200: #30302E;
-  --bg-300: #454540;
-  --text-100: #ECECEC;
-  --text-200: #E1E1E0;
-  --text-300: #B4B4B4;
-  --text-400: #8A8A88;
-  --text-500: #6B6B65;
-  --accent: #D2996E;
-  --accent-hover: #E5AA7F;
+  --bg-0:   #f8f8f8;
+  --bg-000: #f8f8f8;
+  --bg-100: #ffffff;
+  --bg-200: #f0f0f0;
+  --bg-300: #e4e4e4;
+  --text-100: #1a1a19;
+  --text-200: #4d4d4c;
+  --text-300: #6c6a69;
+  --text-400: #9b9a98;
+  --text-500: #bbbab9;
+  --accent: #2463eb;
+  --accent-hover: #1c4ed8;
+  --radius: 6px;
 }
 
 @keyframes fadeIn {

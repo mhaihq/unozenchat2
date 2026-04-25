@@ -365,7 +365,7 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
               <button
                 onClick={() => setIsThinkingEnabled(!isThinkingEnabled)}
                 className={`transition-all duration-200 h-8 w-8 flex items-center justify-center rounded-lg active:scale-95
-                  ${isThinkingEnabled ? "text-accent bg-accent/10" : "text-text-400 hover:text-text-200 hover:bg-bg-200"}`}
+                  ${isThinkingEnabled ? "text-primary-700 bg-primary-100" : "text-text-400 hover:text-text-200 hover:bg-bg-200"}`}
                 aria-pressed={isThinkingEnabled}
                 aria-label="Extended thinking"
               >
@@ -380,8 +380,8 @@ export const ClaudeChatInput: React.FC<ClaudeChatInputProps> = ({
               <button
                 onClick={handleSend}
                 disabled={!hasContent || disabled}
-                className={`inline-flex items-center justify-center shrink-0 transition-colors h-8 w-8 rounded-xl active:scale-95
-                  ${hasContent && !disabled ? "bg-accent text-white hover:bg-accent-hover shadow-md" : "bg-accent/30 text-white/60 cursor-default"}`}
+                className={`inline-flex items-center justify-center shrink-0 transition-colors h-8 w-8 rounded-sage active:scale-95
+                  ${hasContent && !disabled ? "bg-primary-700 text-white hover:bg-primary-800 shadow-md" : "bg-charcoal-300 text-white/60 cursor-default"}`}
                 type="button"
                 aria-label="Send message"
               >

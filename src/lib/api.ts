@@ -1,12 +1,14 @@
 import { supabase, EDGE_FUNCTION_URL } from "./supabase";
 import type { Document, Message } from "./types";
 
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-const authHeaders = {
-  Authorization: `Bearer ${anonKey}`,
-  "Content-Type": "application/json",
-};
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
 
 export async function createSession(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -26,7 +28,7 @@ export async function sendMessage(
 ): Promise<{ message: string; sourcesFound: number }> {
   const response = await fetch(`${EDGE_FUNCTION_URL}/chat`, {
     method: "POST",
-    headers: authHeaders,
+    headers: await getAuthHeaders(),
     body: JSON.stringify({
       message,
       sessionId,
@@ -58,7 +60,7 @@ export async function uploadDocument(
 
   const response = await fetch(`${EDGE_FUNCTION_URL}/ingest`, {
     method: "POST",
-    headers: authHeaders,
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ documentId: doc.id, content }),
   });
 

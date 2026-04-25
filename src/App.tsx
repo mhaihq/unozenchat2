@@ -1,52 +1,104 @@
-import { useEffect, useRef, useState } from "react";
-import { BookOpen, MessageSquare, Sparkles, RotateCcw, Settings, FileText, LogOut } from "lucide-react";
-import { ChatMessage } from "./components/ChatMessage";
-import { TypingIndicator } from "./components/TypingIndicator";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { RotateCcw, Settings, LogOut, BookOpen, FileText, ChevronDown, SendHorizonal, Mic, MicOff, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useVoiceRecorder } from "./hooks/useVoiceRecorder";
 import { AdminLogin } from "./components/AdminLogin";
 import { AdminPanel } from "./components/AdminPanel";
 import { AuthPage } from "./components/AuthPage";
-import { ClaudeChatInput } from "./components/ui/claude-style-chat-input";
-import type { AttachedFile } from "./components/ui/claude-style-chat-input";
+import { CourseView } from "./components/CourseView";
 import { supabase } from "./lib/supabase";
 import { createSession, sendMessage, fetchDocuments } from "./lib/api";
 import type { AppView, Document, Message } from "./lib/types";
 import type { User } from "@supabase/supabase-js";
 
-const WELCOME_MESSAGE: Message = {
+const WELCOME: Message = {
   id: "welcome",
   role: "assistant",
-  content:
-    "Ciao! Sono il tuo assistente del corso. Chiedimi qualsiasi cosa sul corso — troverò le risposte dai materiali caricati: trascrizioni, appunti e slide.\n\nCosa vorresti sapere?",
+  content: "Ciao! Sono il tuo assistente del corso. Chiedimi qualsiasi cosa — troverò le risposte dai materiali caricati.\n\nCosa vorresti sapere?",
   createdAt: new Date(),
 };
 
+const BOT_AVATAR = "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=coursebot&backgroundColor=b6e3f4";
+
+function MessageBubble({ message, userAvatar }: { message: Message; userAvatar: string }) {
+  const isUser = message.role === "user";
+  const avatar = isUser ? userAvatar : BOT_AVATAR;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.28, ease: "easeOut" }}
+      className={`flex items-end gap-3 ${isUser ? "flex-row-reverse" : ""}`}
+    >
+      <img src={avatar} alt="" className="w-8 h-8 rounded-full border-2 border-white shadow-sm flex-shrink-0 object-cover" />
+      <div
+        className={`max-w-[70%] px-4 py-3 text-sm leading-relaxed shadow-sage-sm ${
+          isUser
+            ? "bg-primary-700 text-white rounded-tl-xl rounded-tr-xl rounded-bl-xl"
+            : "bg-white text-charcoal-900 border border-charcoal-200 rounded-tl-xl rounded-tr-xl rounded-br-xl"
+        }`}
+      >
+        <p className="whitespace-pre-wrap">{message.content}</p>
+        <p className={`text-xs mt-1.5 ${isUser ? "text-primary-200" : "text-charcoal-400"}`}>
+          {message.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+function TypingBubble() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      className="flex items-end gap-3"
+    >
+      <img src={BOT_AVATAR} alt="" className="w-8 h-8 rounded-full border-2 border-white shadow-sm flex-shrink-0 object-cover" />
+      <div className="bg-white border border-charcoal-200 rounded-tl-xl rounded-tr-xl rounded-br-xl px-4 py-3 shadow-sage-sm">
+        <div className="flex gap-1.5 items-center h-4">
+          {[0, 0.15, 0.3].map((d, i) => (
+            <motion.span
+              key={i}
+              className="w-1.5 h-1.5 bg-primary-400 rounded-full"
+              animate={{ y: [0, -5, 0] }}
+              transition={{ duration: 0.6, repeat: Infinity, delay: d }}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function App() {
-  const [user, setUser] = useState<User | null | undefined>(undefined); // undefined = loading
+  const [user, setUser] = useState<User | null | undefined>(undefined);
   const [view, setView] = useState<AppView>("student");
   const [adminAuthed, setAdminAuthed] = useState(false);
-
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showMaterials, setShowMaterials] = useState(false);
+  const [input, setInput] = useState("");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auth state listener
+  const { state: recordingState, toggle: toggleRecording } = useVoiceRecorder({
+    onTranscript: (text) => setInput((prev) => (prev ? prev + " " + text : text)),
+    onError: (msg) => { setVoiceError(msg); setTimeout(() => setVoiceError(null), 3000); },
+  });
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
+    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
   }, []);
 
-  // Load data once authenticated
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -60,49 +112,44 @@ export default function App() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  async function handleSendMessage(data: {
-    message: string;
-    files: AttachedFile[];
-    pastedContent: AttachedFile[];
-    model: string;
-    isThinkingEnabled: boolean;
-  }) {
-    const text = data.message.trim();
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + "px";
+    }
+  }, [input]);
+
+  const handleSend = useCallback(async () => {
+    const text = input.trim();
     if (!text || isTyping || !sessionId) return;
-
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text,
-      createdAt: new Date(),
-    };
-
+    setInput("");
+    const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: text, createdAt: new Date() };
     setMessages((prev) => [...prev, userMsg]);
     setIsTyping(true);
     setError(null);
-
     try {
       const { message } = await sendMessage(text, sessionId, messages);
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: message, createdAt: new Date() },
-      ]);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: message, createdAt: new Date() }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setIsTyping(false);
     }
-  }
+  }, [input, isTyping, sessionId, messages]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+  };
 
   function handleReset() {
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([WELCOME]);
     setError(null);
     createSession().then(setSessionId);
   }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([WELCOME]);
     setSessionId(null);
     setDocuments([]);
     setView("student");
@@ -111,155 +158,194 @@ export default function App() {
 
   if (user === undefined) {
     return (
-      <div className="min-h-screen bg-bg-0 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
-            <BookOpen className="w-6 h-6 text-white" />
+      <div className="min-h-screen bg-charcoal-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-sage-lg bg-primary-700 flex items-center justify-center shadow-sage">
+            <BookOpen className="w-5 h-5 text-white" />
           </div>
-          <div className="flex gap-1.5">
-            <span className="w-2 h-2 bg-accent/40 rounded-full animate-bounce [animation-delay:0ms]" />
-            <span className="w-2 h-2 bg-accent/40 rounded-full animate-bounce [animation-delay:150ms]" />
-            <span className="w-2 h-2 bg-accent/40 rounded-full animate-bounce [animation-delay:300ms]" />
+          <div className="flex gap-1">
+            {[0, 150, 300].map((d) => (
+              <span key={d} className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
+            ))}
           </div>
         </div>
       </div>
     );
   }
 
-  // Not authenticated — show login
-  if (!user) {
-    return <AuthPage onAuth={() => {}} />;
-  }
-
-  // Admin flow
+  if (!user) return <AuthPage onAuth={() => {}} />;
   if (view === "admin") {
-    if (!adminAuthed) {
-      return <AdminLogin onSuccess={() => { setAdminAuthed(true); }} onBack={() => setView("student")} />;
-    }
-    return (
-      <AdminPanel
-        documents={documents}
-        onDocumentsChange={setDocuments}
-        onLogout={() => { setAdminAuthed(false); setView("student"); }}
-      />
-    );
+    if (!adminAuthed) return <AdminLogin onSuccess={() => setAdminAuthed(true)} onBack={() => setView("student")} />;
+    return <AdminPanel documents={documents} onDocumentsChange={setDocuments} onLogout={() => { setAdminAuthed(false); setView("student"); }} />;
   }
 
-  const displayName = user.user_metadata?.full_name?.split(" ")[0] ?? user.email?.split("@")[0] ?? "there";
+  const displayName = user.user_metadata?.full_name?.split(" ")[0] ?? user.email?.split("@")[0] ?? "You";
+  const userAvatar = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d1d4f9`;
 
-  // Student chat view
   return (
-    <div className="flex flex-col h-screen bg-bg-0 font-sans overflow-hidden text-text-100">
+    <CourseView
+      displayName={displayName}
+      userAvatar={userAvatar}
+      onAdmin={() => setView("admin")}
+      onSignOut={handleSignOut}
+    />
+  );
+
+  // eslint-disable-next-line no-unreachable
+  return (
+    <div className="flex flex-col h-screen bg-charcoal-50 font-sans overflow-hidden">
       {/* Header */}
-      <header className="flex items-center gap-3 px-5 py-3.5 bg-bg-100 border-b border-bg-300 flex-shrink-0">
-        <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center flex-shrink-0">
+      <header className="flex items-center gap-3 px-5 py-3 bg-white border-b border-charcoal-200 flex-shrink-0 shadow-sage-sm z-10">
+        <div className="w-8 h-8 rounded-sage-lg bg-primary-700 flex items-center justify-center shadow-sm">
           <BookOpen className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1">
-          <h1 className="text-sm font-semibold text-text-100 leading-tight">Assistente del Corso</h1>
-          <p className="text-xs text-text-400 leading-tight">
-            {documents.length > 0
-              ? `${documents.length} material${documents.length !== 1 ? "i" : "e"} disponibil${documents.length !== 1 ? "i" : "e"}`
-              : "Chiedimi qualsiasi cosa sul corso"}
+          <h1 className="text-sm font-semibold text-charcoal-900">Assistente del Corso</h1>
+          <p className="text-xs text-charcoal-400">
+            {documents.length > 0 ? `${documents.length} fonte${documents.length !== 1 ? "i" : "e"} caricata${documents.length !== 1 ? "i" : ""}` : "Nessuna fonte caricata"}
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {documents.length > 0 && (
             <button
               onClick={() => setShowMaterials((v) => !v)}
-              className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
-                showMaterials
-                  ? "bg-accent/10 text-accent"
-                  : "bg-bg-200 text-text-300 hover:text-text-200"
+              className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-sage transition-all ${
+                showMaterials ? "bg-primary-50 text-primary-700 border border-primary-200" : "text-charcoal-500 hover:bg-charcoal-100"
               }`}
             >
-              <Sparkles className="w-3 h-3" />
-              {documents.length} font{documents.length !== 1 ? "i" : "e"}
+              <FileText className="w-3.5 h-3.5" />
+              Fonti
+              <ChevronDown className={`w-3 h-3 transition-transform ${showMaterials ? "rotate-180" : ""}`} />
             </button>
           )}
-
-          {/* User badge */}
-          <div className="hidden sm:flex items-center gap-1.5 bg-bg-200 px-2.5 py-1 rounded-full">
-            <div className="w-4 h-4 rounded-full bg-accent/20 flex items-center justify-center">
-              <span className="text-[9px] font-bold text-accent uppercase">{displayName[0]}</span>
-            </div>
-            <span className="text-xs text-text-300 font-medium">{displayName}</span>
+          <div className="w-px h-5 bg-charcoal-200 mx-1" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-charcoal-500 font-medium px-2">
+            <img src={userAvatar} className="w-5 h-5 rounded-full border border-charcoal-200" alt="" />
+            {displayName}
           </div>
-
-          <button
-            onClick={handleReset}
-            title="Nuova conversazione"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-text-400 hover:text-text-200 hover:bg-bg-200 transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setView("admin")}
-            title="Amministrazione"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-text-400 hover:text-text-200 hover:bg-bg-200 transition-colors"
-          >
-            <Settings className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleSignOut}
-            title="Esci"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-text-400 hover:text-text-200 hover:bg-bg-200 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          {[
+            { icon: RotateCcw, title: "Nuova conversazione", action: handleReset },
+            { icon: Settings, title: "Amministrazione", action: () => setView("admin") },
+            { icon: LogOut, title: "Esci", action: handleSignOut },
+          ].map(({ icon: Icon, title, action }) => (
+            <button key={title} onClick={action} title={title} className="w-8 h-8 rounded-sage flex items-center justify-center text-charcoal-400 hover:text-charcoal-700 hover:bg-charcoal-100 transition-colors">
+              <Icon className="w-3.5 h-3.5" />
+            </button>
+          ))}
         </div>
       </header>
 
       {/* Materials drawer */}
-      {showMaterials && documents.length > 0 && (
-        <div className="bg-bg-100 border-b border-bg-300 px-5 py-3 flex gap-2 flex-wrap">
-          {documents.map((d) => (
-            <div
-              key={d.id}
-              className="flex items-center gap-1.5 bg-bg-200 border border-bg-300 rounded-lg px-2.5 py-1.5 text-xs text-text-300"
-            >
-              <FileText className="w-3 h-3 text-accent" />
-              <span className="max-w-[140px] truncate">{d.name}</span>
+      <AnimatePresence>
+        {showMaterials && documents.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="overflow-hidden border-b border-charcoal-200 bg-white z-10"
+          >
+            <div className="px-5 py-2.5 flex gap-2 flex-wrap">
+              {documents.map((d) => (
+                <div key={d.id} className="flex items-center gap-1.5 bg-charcoal-50 border border-charcoal-200 rounded-sage px-2.5 py-1 text-xs text-charcoal-600">
+                  <FileText className="w-3 h-3 text-primary-600" />
+                  <span className="max-w-[200px] truncate">{d.name}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 py-6 space-y-5">
-          {messages.length === 0 ? (
-            <div className="text-center py-16">
-              <MessageSquare className="w-10 h-10 text-bg-300 mx-auto mb-3" />
-              <p className="text-text-400 text-sm">Inizia la conversazione</p>
-            </div>
-          ) : (
-            messages.map((msg) => <ChatMessage key={msg.id} message={msg} />)
-          )}
-
-          {isTyping && <TypingIndicator />}
+        <div className="w-full max-w-3xl mx-auto px-6 py-6 space-y-4">
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} userAvatar={userAvatar} />
+            ))}
+            {isTyping && <TypingBubble key="typing" />}
+          </AnimatePresence>
 
           {error && (
-            <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700">
-              <span className="font-medium">Errore:</span> {error}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-sage px-3.5 py-2.5 text-sm text-red-700"
+            >
+              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              {error}
+            </motion.div>
           )}
-
           <div ref={bottomRef} />
         </div>
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 bg-bg-0 border-t border-bg-300 px-4 py-5">
-        <ClaudeChatInput
-          onSendMessage={handleSendMessage}
-          disabled={isTyping || !sessionId}
-          placeholder="Fai una domanda sul corso..."
-        />
-        <p className="text-center text-xs text-text-500 mt-3">
-          Invio per inviare &middot; Shift+Invio per andare a capo
-        </p>
+      <div className="flex-shrink-0 bg-white border-t border-charcoal-200 px-4 py-3">
+        <div className="w-full max-w-3xl mx-auto">
+          <div className={`flex items-end gap-2 bg-charcoal-50 border rounded-sage-xl px-4 py-2.5 transition-all shadow-sage-sm ${
+            recordingState === "recording"
+              ? "border-red-400 ring-2 ring-red-100"
+              : "border-charcoal-200 focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100"
+          }`}>
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={recordingState === "recording" ? "In ascolto…" : recordingState === "transcribing" ? "Trascrizione in corso…" : "Fai una domanda sul corso..."}
+              disabled={isTyping || !sessionId || recordingState === "transcribing"}
+              rows={1}
+              className="flex-1 bg-transparent text-sm text-charcoal-900 placeholder-charcoal-400 resize-none outline-none leading-relaxed py-1 disabled:opacity-50"
+              style={{ minHeight: "1.5rem", maxHeight: "160px" }}
+            />
+            <div className="flex items-center gap-1.5 flex-shrink-0 mb-0.5">
+              {/* Mic button */}
+              <motion.button
+                onClick={toggleRecording}
+                disabled={isTyping || !sessionId || recordingState === "transcribing"}
+                whileTap={{ scale: 0.9 }}
+                title={recordingState === "recording" ? "Interrompi registrazione" : "Registra messaggio vocale"}
+                className={`relative w-8 h-8 rounded-sage flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  recordingState === "recording"
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : recordingState === "transcribing"
+                    ? "bg-charcoal-200 text-charcoal-500"
+                    : "bg-charcoal-100 text-charcoal-500 hover:bg-charcoal-200 hover:text-charcoal-700"
+                }`}
+              >
+                {recordingState === "transcribing" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : recordingState === "recording" ? (
+                  <MicOff className="w-4 h-4" />
+                ) : (
+                  <Mic className="w-4 h-4" />
+                )}
+                {/* Pulse ring when recording */}
+                {recordingState === "recording" && (
+                  <span className="absolute w-8 h-8 rounded-sage bg-red-400 animate-ping opacity-40 pointer-events-none" />
+                )}
+              </motion.button>
+
+              {/* Send button */}
+              <motion.button
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping || !sessionId}
+                whileTap={{ scale: 0.9 }}
+                className="w-8 h-8 rounded-sage flex items-center justify-center bg-primary-700 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-800 transition-colors"
+              >
+                <SendHorizonal className="w-4 h-4" />
+              </motion.button>
+            </div>
+          </div>
+          {voiceError && (
+            <p className="text-xs text-red-500 mt-1.5 text-center">{voiceError}</p>
+          )}
+          <p className="text-center text-xs text-charcoal-400 mt-2">Invio per inviare · Shift+Invio per andare a capo · Microfono per registrare</p>
+        </div>
       </div>
     </div>
   );

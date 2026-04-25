@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Eye, EyeOff, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 type AuthMode = "login" | "register" | "forgot";
@@ -18,16 +18,12 @@ export function AuthPage({ onAuth }: Props) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
-  function reset() {
-    setError("");
-    setInfo("");
-  }
+  function reset() { setError(""); setInfo(""); }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     reset();
     setLoading(true);
-
     try {
       if (mode === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -36,16 +32,12 @@ export function AuthPage({ onAuth }: Props) {
       } else if (mode === "register") {
         if (!name.trim()) throw new Error("Inserisci il tuo nome.");
         if (password.length < 6) throw new Error("La password deve contenere almeno 6 caratteri.");
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: name.trim() } },
-        });
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() } } });
         if (error) throw error;
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
         onAuth();
-      } else if (mode === "forgot") {
+      } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) throw error;
         setInfo("Controlla la tua email per il link di reimpostazione password.");
@@ -58,108 +50,76 @@ export function AuthPage({ onAuth }: Props) {
     }
   }
 
-  const titles: Record<AuthMode, string> = {
-    login: "Bentornato",
-    register: "Crea un account",
-    forgot: "Reimposta password",
-  };
-
-  const subtitles: Record<AuthMode, string> = {
-    login: "Accedi al tuo assistente del corso.",
-    register: "Iscriviti per ricevere aiuto con i materiali del corso.",
-    forgot: "Ti invieremo un link di reimpostazione via email.",
-  };
-
-  const submitLabels: Record<AuthMode, string> = {
-    login: "Accedi",
-    register: "Crea account",
-    forgot: "Invia link di reimpostazione",
-  };
-
   return (
-    <div className="min-h-screen bg-bg-0 flex flex-col items-center justify-center px-4 font-sans">
-      {/* Soft background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-48 -right-48 w-[500px] h-[500px] rounded-full bg-accent/6 blur-3xl" />
-        <div className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full bg-accent/6 blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-sm">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mb-5 shadow-xl shadow-accent/25 ring-4 ring-accent/10">
-            <BookOpen className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-bg-0 flex items-center justify-center px-4">
+      <div className="w-full max-w-[400px]">
+        {/* Logo / Brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-sage-lg bg-primary-700 mb-4">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
           </div>
-          <h1 className="text-2xl font-semibold text-text-100 tracking-tight">{titles[mode]}</h1>
-          <p className="text-sm text-text-400 mt-1.5 text-center leading-relaxed">{subtitles[mode]}</p>
+          <h1 className="text-xl font-semibold text-text-100">
+            {mode === "login" ? "Accedi al tuo account" : mode === "register" ? "Crea un account" : "Reimposta la password"}
+          </h1>
+          <p className="text-sm text-text-400 mt-1">
+            {mode === "login" ? "Accedi al tuo assistente del corso" : mode === "register" ? "Inizia con il tuo assistente del corso" : "Ti invieremo un link di reimpostazione"}
+          </p>
         </div>
 
         {/* Card */}
-        <div className="bg-bg-100 rounded-3xl border border-bg-300 shadow-input p-7">
+        <div className="bg-bg-100 border border-bg-300 rounded-sage-xl shadow-sage p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name — register only */}
             {mode === "register" && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-300 uppercase tracking-wider">Nome completo</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-400" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Mario Rossi"
-                    required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-bg-300 bg-bg-0 text-sm text-text-100 placeholder-text-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-text-200 mb-1">Nome completo</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Mario Rossi"
+                  required
+                  className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
+                />
               </div>
             )}
 
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-300 uppercase tracking-wider">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nome@esempio.it"
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-bg-300 bg-bg-0 text-sm text-text-100 placeholder-text-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-text-200 mb-1">Indirizzo email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
+              />
             </div>
 
-            {/* Password */}
             {mode !== "forgot" && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-text-300 uppercase tracking-wider">Password</label>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-text-200">Password</label>
                   {mode === "login" && (
-                    <button
-                      type="button"
-                      onClick={() => { setMode("forgot"); reset(); }}
-                      className="text-xs text-accent hover:text-accent-hover transition-colors font-medium"
-                    >
+                    <button type="button" onClick={() => { setMode("forgot"); reset(); }} className="text-xs text-primary-700 hover:text-primary-800 font-medium">
                       Password dimenticata?
                     </button>
                   )}
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-400" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={mode === "register" ? "Almeno 6 caratteri" : "••••••••"}
                     required
-                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-bg-300 bg-bg-0 text-sm text-text-100 placeholder-text-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all"
+                    className="w-full px-3 py-2 pr-10 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-400 hover:text-text-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-400 hover:text-text-200 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -167,60 +127,55 @@ export function AuthPage({ onAuth }: Props) {
               </div>
             )}
 
-            {/* Feedback */}
             {error && (
-              <div className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5 leading-relaxed">
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-sage text-sm text-red-700">
+                <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
                 {error}
               </div>
             )}
             {info && (
-              <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2.5 leading-relaxed">
+              <div className="flex items-start gap-2 px-3 py-2.5 bg-sage-50 border border-sage-200 rounded-sage text-sm text-sage-800">
+                <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
                 {info}
               </div>
             )}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-60 text-white text-sm font-semibold py-2.5 rounded-xl transition-all duration-150 shadow-lg shadow-accent/20 mt-1"
+              className="w-full flex items-center justify-center gap-2 bg-primary-700 hover:bg-primary-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-sage transition-colors mt-1"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  {submitLabels[mode]}
-                  <ArrowRight className="w-4 h-4" />
-                </>
+              {loading && (
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
               )}
+              {loading ? "Caricamento..." : mode === "login" ? "Accedi" : mode === "register" ? "Crea account" : "Invia link di reimpostazione"}
             </button>
           </form>
         </div>
 
         {/* Mode switcher */}
-        <div className="mt-6 text-center text-sm text-text-400">
+        <p className="text-center text-sm text-text-400 mt-5">
           {mode === "login" && (
-            <>
-              Non hai un account?{" "}
-              <button onClick={() => { setMode("register"); reset(); }} className="text-accent hover:text-accent-hover font-semibold transition-colors">
-                Registrati
-              </button>
+            <>Non hai un account?{" "}
+              <button onClick={() => { setMode("register"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Registrati</button>
             </>
           )}
           {mode === "register" && (
-            <>
-              Hai gia un account?{" "}
-              <button onClick={() => { setMode("login"); reset(); }} className="text-accent hover:text-accent-hover font-semibold transition-colors">
-                Accedi
-              </button>
+            <>Hai già un account?{" "}
+              <button onClick={() => { setMode("login"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Accedi</button>
             </>
           )}
           {mode === "forgot" && (
-            <button onClick={() => { setMode("login"); reset(); }} className="text-accent hover:text-accent-hover font-semibold transition-colors">
-              Torna al login
-            </button>
+            <button onClick={() => { setMode("login"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Torna al login</button>
           )}
-        </div>
+        </p>
       </div>
     </div>
   );

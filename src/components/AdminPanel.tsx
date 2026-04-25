@@ -1,8 +1,5 @@
 import { useRef, useState } from "react";
-import {
-  Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X,
-  LogOut, Key, BookOpen, Sparkles, RefreshCw,
-} from "lucide-react";
+import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, BookOpen, RefreshCw } from "lucide-react";
 import type { Document, UploadStatus } from "../lib/types";
 import { uploadDocument, deleteDocument, updateAdminPassword } from "../lib/api";
 
@@ -48,7 +45,6 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
   async function processFile(file: File) {
     const uploadId = crypto.randomUUID();
     setUploads((prev) => [{ id: uploadId, name: file.name, status: "reading" }, ...prev]);
-
     try {
       const text = await readFile(file);
       updateUpload(uploadId, { status: "processing" });
@@ -57,10 +53,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
       onDocumentsChange([doc, ...documents]);
       setTimeout(() => setUploads((prev) => prev.filter((u) => u.id !== uploadId)), 4000);
     } catch (err) {
-      updateUpload(uploadId, {
-        status: "error",
-        error: err instanceof Error ? err.message : "Caricamento fallito",
-      });
+      updateUpload(uploadId, { status: "error", error: err instanceof Error ? err.message : "Caricamento fallito" });
     }
   }
 
@@ -75,9 +68,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
 
   async function handleFiles(files: FileList | null) {
     if (!files) return;
-    for (const file of Array.from(files)) {
-      await processFile(file);
-    }
+    for (const file of Array.from(files)) await processFile(file);
   }
 
   async function handleDelete(id: string) {
@@ -94,14 +85,8 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
   async function handlePasswordSave(e: React.FormEvent) {
     e.preventDefault();
     setPwError("");
-    if (newPassword.length < 6) {
-      setPwError("La password deve contenere almeno 6 caratteri.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPwError("Le password non coincidono.");
-      return;
-    }
+    if (newPassword.length < 6) { setPwError("La password deve contenere almeno 6 caratteri."); return; }
+    if (newPassword !== confirmPassword) { setPwError("Le password non coincidono."); return; }
     setPwStatus("saving");
     try {
       await updateAdminPassword(newPassword);
@@ -117,92 +102,80 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
 
   const totalSize = documents.reduce((s, d) => s + d.size, 0);
 
-  const tabLabels: Record<"materials" | "settings", string> = {
-    materials: "Materiali",
-    settings: "Impostazioni",
-  };
-
   return (
     <div className="min-h-screen bg-bg-0 font-sans">
       {/* Header */}
-      <header className="bg-bg-100 border-b border-bg-300 px-6 py-4 flex items-center gap-4">
-        <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center shadow-md shadow-accent/20">
-          <BookOpen className="w-4 h-4 text-white" />
+      <header className="bg-bg-100 border-b border-bg-300 px-6 py-3 flex items-center gap-3">
+        <div className="w-7 h-7 rounded-sage bg-primary-700 flex items-center justify-center">
+          <BookOpen className="w-3.5 h-3.5 text-white" />
         </div>
         <div className="flex-1">
           <h1 className="text-sm font-semibold text-text-100">Assistente del Corso</h1>
-          <p className="text-xs text-text-400">Pannello di amministrazione</p>
+          <p className="text-xs text-text-400">Pannello amministratore</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-amber-100">
-            <Sparkles className="w-3 h-3" />
-            Admin
-          </span>
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-1.5 text-xs text-text-400 hover:text-text-100 bg-bg-200 hover:bg-bg-300 px-3 py-1.5 rounded-lg transition-colors font-medium"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Esci
-          </button>
-        </div>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-300">
+          Admin
+        </span>
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-1.5 text-xs text-text-400 hover:text-text-200 bg-bg-200 hover:bg-bg-300 px-3 py-1.5 rounded-sage transition-colors font-medium"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Esci
+        </button>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="bg-bg-100 rounded-2xl border border-bg-300 px-6 py-5 shadow-input">
-            <p className="text-xs font-semibold text-text-400 uppercase tracking-wider mb-1">Materiali</p>
-            <p className="text-3xl font-bold text-text-100">{documents.length}</p>
-            <p className="text-xs text-text-400 mt-1">file caricati</p>
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="bg-bg-100 rounded-sage-lg border border-bg-300 px-5 py-4 shadow-sage-sm">
+            <p className="text-xs font-medium text-text-400 uppercase tracking-wider mb-1">Materiali</p>
+            <p className="text-2xl font-bold text-text-100">{documents.length}</p>
+            <p className="text-xs text-text-400 mt-0.5">file caricati</p>
           </div>
-          <div className="bg-bg-100 rounded-2xl border border-bg-300 px-6 py-5 shadow-input">
-            <p className="text-xs font-semibold text-text-400 uppercase tracking-wider mb-1">Spazio utilizzato</p>
-            <p className="text-3xl font-bold text-text-100">{formatBytes(totalSize)}</p>
-            <p className="text-xs text-text-400 mt-1">su tutti i documenti</p>
+          <div className="bg-bg-100 rounded-sage-lg border border-bg-300 px-5 py-4 shadow-sage-sm">
+            <p className="text-xs font-medium text-text-400 uppercase tracking-wider mb-1">Spazio utilizzato</p>
+            <p className="text-2xl font-bold text-text-100">{formatBytes(totalSize)}</p>
+            <p className="text-xs text-text-400 mt-0.5">su tutti i documenti</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 bg-bg-100 rounded-xl border border-bg-300 p-1 w-fit shadow-input">
+        <div className="flex border-b border-bg-300 mb-6">
           {(["materials", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors capitalize ${
                 tab === t
-                  ? "bg-accent text-white shadow-sm"
-                  : "text-text-400 hover:text-text-200"
+                  ? "border-primary-700 text-primary-700"
+                  : "border-transparent text-text-400 hover:text-text-200"
               }`}
             >
-              {tabLabels[t]}
+              {t === "materials" ? "Materiali" : "Impostazioni"}
             </button>
           ))}
         </div>
 
         {tab === "materials" && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Upload Zone */}
             <div
               onClick={() => inputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={onDrop}
-              className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200 ${
+              className={`border-2 border-dashed rounded-sage-lg p-10 text-center cursor-pointer transition-all ${
                 isDragging
-                  ? "border-accent bg-accent/5"
-                  : "border-bg-300 bg-bg-100 hover:border-accent/50 hover:bg-bg-0 shadow-input"
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-bg-300 bg-bg-100 hover:border-primary-400 hover:bg-bg-0"
               }`}
             >
-              <div className={`w-12 h-12 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-colors ${isDragging ? "bg-accent/10" : "bg-bg-200"}`}>
-                <Upload className={`w-5 h-5 transition-colors ${isDragging ? "text-accent" : "text-text-400"}`} />
+              <div className={`w-10 h-10 rounded-sage-lg mx-auto mb-3 flex items-center justify-center ${isDragging ? "bg-primary-100" : "bg-bg-200"}`}>
+                <Upload className={`w-5 h-5 ${isDragging ? "text-primary-600" : "text-text-400"}`} />
               </div>
-              <p className="text-sm font-semibold text-text-200 mb-1.5">
-                Trascina i file del corso qui o clicca per caricare
-              </p>
-              <p className="text-xs text-text-400">
-                Supporta .txt, .md, .csv, .srt, .vtt, .json e altri formati di testo
-              </p>
+              <p className="text-sm font-medium text-text-200 mb-1">Trascina i file del corso qui o clicca per caricare</p>
+              <p className="text-xs text-text-400">Supporta .txt, .md, .csv, .srt, .vtt, .json e altri formati di testo</p>
             </div>
             <input
               ref={inputRef}
@@ -217,11 +190,11 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
             {uploads.length > 0 && (
               <div className="space-y-2">
                 {uploads.map((u) => (
-                  <div key={u.id} className="flex items-center gap-3 bg-bg-100 rounded-xl border border-bg-300 px-4 py-3 shadow-input">
+                  <div key={u.id} className="flex items-center gap-3 bg-bg-100 rounded-sage-lg border border-bg-300 px-4 py-3 shadow-sage-sm">
                     {u.status === "reading" || u.status === "processing" ? (
-                      <Loader2 className="w-4 h-4 text-accent animate-spin flex-shrink-0" />
+                      <Loader2 className="w-4 h-4 text-primary-600 animate-spin flex-shrink-0" />
                     ) : u.status === "done" ? (
-                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-sage-600 flex-shrink-0" />
                     ) : (
                       <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                     )}
@@ -231,14 +204,11 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
                         {u.status === "reading" && "Lettura file in corso..."}
                         {u.status === "processing" && "Generazione embeddings — potrebbe richiedere un momento..."}
                         {u.status === "done" && "Elaborato e indicizzato con successo"}
-                        {u.status === "error" && (u.error ?? "Errore")}
+                        {u.status === "error" && (u.error ?? "Error")}
                       </p>
                     </div>
                     {(u.status === "done" || u.status === "error") && (
-                      <button
-                        onClick={() => setUploads((p) => p.filter((x) => x.id !== u.id))}
-                        className="text-text-400 hover:text-text-200 transition-colors"
-                      >
+                      <button onClick={() => setUploads((p) => p.filter((x) => x.id !== u.id))} className="text-text-400 hover:text-text-200 transition-colors">
                         <X className="w-4 h-4" />
                       </button>
                     )}
@@ -249,29 +219,24 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
 
             {/* Documents table */}
             {documents.length > 0 ? (
-              <div className="bg-bg-100 rounded-2xl border border-bg-300 overflow-hidden shadow-input">
-                <div className="px-5 py-4 border-b border-bg-300 flex items-center justify-between">
+              <div className="bg-bg-100 rounded-sage-lg border border-bg-300 overflow-hidden shadow-sage-sm">
+                <div className="px-5 py-3.5 border-b border-bg-300 flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-text-100">Materiali caricati</h2>
-                  <span className="text-xs text-text-400 bg-bg-200 px-2.5 py-1 rounded-full">
-                    {documents.length} file
-                  </span>
+                  <span className="text-xs text-text-400 bg-bg-200 px-2 py-0.5 rounded-full">{documents.length} file</span>
                 </div>
                 <div className="divide-y divide-bg-300">
                   {documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="flex items-center gap-4 px-5 py-3.5 hover:bg-bg-0 transition-colors group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4 h-4 text-accent" />
+                    <div key={doc.id} className="flex items-center gap-3 px-5 py-3 hover:bg-bg-0 transition-colors group">
+                      <div className="w-7 h-7 rounded-sage bg-primary-50 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-3.5 h-3.5 text-primary-600" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-text-100 truncate">{doc.name}</p>
-                        <p className="text-xs text-text-400">{formatBytes(doc.size)} &middot; Aggiunto il {formatDate(doc.createdAt)}</p>
+                        <p className="text-xs text-text-400">{formatBytes(doc.size)} · Aggiunto il {formatDate(doc.createdAt)}</p>
                       </div>
                       <button
                         onClick={() => handleDelete(doc.id)}
-                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-all px-2.5 py-1.5 rounded-lg hover:bg-red-50 font-medium"
+                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-all px-2 py-1 rounded-sage hover:bg-red-50 font-medium"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Elimina
@@ -281,58 +246,56 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
                 </div>
               </div>
             ) : (
-              <div className="bg-bg-100 rounded-2xl border border-bg-300 py-20 text-center shadow-input">
-                <div className="w-12 h-12 rounded-2xl bg-bg-200 flex items-center justify-center mx-auto mb-4">
+              <div className="bg-bg-100 rounded-sage-lg border border-bg-300 py-16 text-center shadow-sage-sm">
+                <div className="w-10 h-10 rounded-sage-lg bg-bg-200 flex items-center justify-center mx-auto mb-3">
                   <FileText className="w-5 h-5 text-text-400" />
                 </div>
-                <p className="text-sm font-semibold text-text-300">Nessun materiale caricato</p>
-                <p className="text-xs text-text-400 mt-1.5">
-                  Carica trascrizioni, PDF o appunti per iniziare.
-                </p>
+                <p className="text-sm font-medium text-text-300">Nessun materiale caricato</p>
+                <p className="text-xs text-text-400 mt-1">Carica trascrizioni, PDF o appunti per iniziare.</p>
               </div>
             )}
           </div>
         )}
 
         {tab === "settings" && (
-          <div className="bg-bg-100 rounded-2xl border border-bg-300 p-6 max-w-md shadow-input">
-            <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-bg-200 flex items-center justify-center">
-                <Key className="w-4 h-4 text-text-300" />
+          <div className="bg-bg-100 rounded-sage-lg border border-bg-300 p-6 max-w-md shadow-sage-sm">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-7 h-7 rounded-sage bg-bg-200 flex items-center justify-center">
+                <Key className="w-3.5 h-3.5 text-text-300" />
               </div>
               <h2 className="text-sm font-semibold text-text-100">Cambia password admin</h2>
             </div>
             <form onSubmit={handlePasswordSave} className="space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-300 uppercase tracking-wider">Nuova password</label>
+              <div>
+                <label className="block text-sm font-medium text-text-200 mb-1">Nuova password</label>
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Nuova password"
-                  className="w-full px-4 py-2.5 rounded-xl border border-bg-300 bg-bg-0 text-sm text-text-100 placeholder-text-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all"
+                  className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-0 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-text-300 uppercase tracking-wider">Conferma password</label>
+              <div>
+                <label className="block text-sm font-medium text-text-200 mb-1">Conferma password</label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Conferma nuova password"
-                  className="w-full px-4 py-2.5 rounded-xl border border-bg-300 bg-bg-0 text-sm text-text-100 placeholder-text-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all"
+                  className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-0 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
                 />
               </div>
               {pwError && (
-                <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">{pwError}</p>
+                <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-sage px-3 py-2">{pwError}</p>
               )}
               {pwStatus === "saved" && (
-                <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-xl px-3.5 py-2.5">Password aggiornata con successo.</p>
+                <p className="text-xs text-sage-700 bg-sage-50 border border-sage-200 rounded-sage px-3 py-2">Password aggiornata con successo.</p>
               )}
               <button
                 type="submit"
                 disabled={pwStatus === "saving"}
-                className="flex items-center gap-2 bg-accent hover:bg-accent-hover disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-md shadow-accent/20 mt-1"
+                className="flex items-center gap-2 bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2 rounded-sage transition-colors"
               >
                 {pwStatus === "saving" && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                 {pwStatus === "saving" ? "Salvataggio..." : "Aggiorna password"}
