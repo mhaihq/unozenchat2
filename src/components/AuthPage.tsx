@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, BookOpen, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { isEmailAllowed } from "../lib/api";
 
 type AuthMode = "login" | "register" | "forgot";
 
@@ -32,6 +33,8 @@ export function AuthPage({ onAuth }: Props) {
       } else if (mode === "register") {
         if (!name.trim()) throw new Error("Inserisci il tuo nome.");
         if (password.length < 6) throw new Error("La password deve contenere almeno 6 caratteri.");
+        const allowed = await isEmailAllowed(email);
+        if (!allowed) throw new Error("Questa email non è autorizzata. Contatta l'organizzatore del corso.");
         const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() } } });
         if (error) throw error;
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });

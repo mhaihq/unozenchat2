@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
-import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, BookOpen, RefreshCw } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, BookOpen, RefreshCw, UserPlus, Mail } from "lucide-react";
 import type { Document, UploadStatus } from "../lib/types";
-import { uploadDocument, deleteDocument, updateAdminPassword } from "../lib/api";
+import { uploadDocument, deleteDocument, updateAdminPassword, fetchAllowedEmails, addAllowedEmail, removeAllowedEmail } from "../lib/api";
 
 interface Props {
   documents: Document[];
@@ -32,11 +32,54 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [tab, setTab] = useState<"materials" | "settings">("materials");
+  const [tab, setTab] = useState<"materials" | "accessi" | "settings">("materials");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [pwError, setPwError] = useState("");
+
+  // Accessi tab state
+  const [allowedEmails, setAllowedEmails] = useState<{ id: string; email: string; created_at: string }[]>([]);
+  const [emailsLoading, setEmailsLoading] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [addingEmail, setAddingEmail] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  useEffect(() => {
+    if (tab === "accessi") loadEmails();
+  }, [tab]);
+
+  async function loadEmails() {
+    setEmailsLoading(true);
+    try {
+      const data = await fetchAllowedEmails();
+      setAllowedEmails(data);
+    } finally {
+      setEmailsLoading(false);
+    }
+  }
+
+  async function handleAddEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailError("");
+    const trimmed = newEmail.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) { setEmailError("Inserisci un'email valida."); return; }
+    setAddingEmail(true);
+    try {
+      await addAllowedEmail(trimmed);
+      setNewEmail("");
+      await loadEmails();
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : "Errore durante l'aggiunta.");
+    } finally {
+      setAddingEmail(false);
+    }
+  }
+
+  async function handleRemoveEmail(id: string) {
+    await removeAllowedEmail(id);
+    setAllowedEmails((prev) => prev.filter((e) => e.id !== id));
+  }
 
   function updateUpload(id: string, patch: Partial<UploadItem>) {
     setUploads((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)));
@@ -141,18 +184,18 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-bg-300 mb-6">
-          {(["materials", "settings"] as const).map((t) => (
+        <div className="flex border-b border-grey-200 mb-6">
+          {(["materials", "accessi", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors capitalize ${
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                 tab === t
-                  ? "border-primary-700 text-primary-700"
-                  : "border-transparent text-text-400 hover:text-text-200"
+                  ? "border-grey-950 text-grey-950"
+                  : "border-transparent text-grey-500 hover:text-grey-800"
               }`}
             >
-              {t === "materials" ? "Materiali" : "Impostazioni"}
+              {t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
             </button>
           ))}
         </div>
@@ -254,6 +297,74 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
                 <p className="text-xs text-text-400 mt-1">Carica trascrizioni, PDF o appunti per iniziare.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {tab === "accessi" && (
+          <div className="space-y-5">
+            {/* Add email form */}
+            <div className="bg-white rounded-xl border border-grey-200 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <UserPlus className="w-4 h-4 text-grey-600" />
+                <h2 className="text-sm font-semibold text-grey-950">Aggiungi partecipante</h2>
+              </div>
+              <form onSubmit={handleAddEmail} className="flex gap-2">
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="email@esempio.com"
+                  className="flex-1 px-3.5 py-2.5 text-sm border border-grey-200 rounded-lg bg-grey-50 text-grey-950 placeholder-grey-400 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-blue-150 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={addingEmail}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-grey-950 text-white text-sm font-semibold rounded-lg hover:bg-grey-800 disabled:opacity-50 transition-colors"
+                >
+                  {addingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  Aggiungi
+                </button>
+              </form>
+              {emailError && <p className="text-xs text-red-600 mt-2">{emailError}</p>}
+            </div>
+
+            {/* Email list */}
+            <div className="bg-white rounded-xl border border-grey-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-grey-150 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-grey-950">Email autorizzate</h2>
+                <span className="text-xs text-grey-500 bg-grey-100 px-2 py-0.5 rounded-full">{allowedEmails.length} email</span>
+              </div>
+
+              {emailsLoading ? (
+                <div className="py-12 flex justify-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-grey-400" />
+                </div>
+              ) : allowedEmails.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Mail className="w-8 h-8 text-grey-300 mx-auto mb-2" />
+                  <p className="text-sm text-grey-500">Nessuna email aggiunta</p>
+                  <p className="text-xs text-grey-400 mt-1">Aggiungi le email dei partecipanti al corso.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-grey-100">
+                  {allowedEmails.map((e) => (
+                    <div key={e.id} className="flex items-center gap-3 px-5 py-3 hover:bg-grey-50 group transition-colors">
+                      <div className="w-7 h-7 rounded-full bg-grey-100 border border-grey-200 flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-3.5 h-3.5 text-grey-500" />
+                      </div>
+                      <span className="flex-1 text-sm text-grey-800 font-medium">{e.email}</span>
+                      <button
+                        onClick={() => handleRemoveEmail(e.id)}
+                        className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-all px-2 py-1 rounded-lg hover:bg-red-50 font-medium"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Rimuovi
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

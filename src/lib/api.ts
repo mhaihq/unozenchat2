@@ -119,6 +119,37 @@ export async function verifyAdminPassword(password: string): Promise<boolean> {
   return setting.value === hashHex;
 }
 
+export async function isEmailAllowed(email: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("allowed_emails")
+    .select("id")
+    .eq("email", email.toLowerCase().trim())
+    .maybeSingle();
+  if (error) return false;
+  return data !== null;
+}
+
+export async function fetchAllowedEmails(): Promise<{ id: string; email: string; created_at: string }[]> {
+  const { data, error } = await supabase
+    .from("allowed_emails")
+    .select("id, email, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function addAllowedEmail(email: string): Promise<void> {
+  const { error } = await supabase
+    .from("allowed_emails")
+    .insert({ email: email.toLowerCase().trim() });
+  if (error) throw new Error(error.message);
+}
+
+export async function removeAllowedEmail(id: string): Promise<void> {
+  const { error } = await supabase.from("allowed_emails").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function updateAdminPassword(newPassword: string): Promise<void> {
   const encoder = new TextEncoder();
   const data = encoder.encode(newPassword);
