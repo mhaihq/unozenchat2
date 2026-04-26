@@ -118,7 +118,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
             { role: "system", content: buildSystemPrompt(lezione, subtopic, level) },
             ...history,
           ],
-          max_tokens: 1024,
+          max_completion_tokens: 1024,
           temperature: 0.7,
         }),
       });
