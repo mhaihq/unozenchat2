@@ -112,7 +112,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
           Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o",
+          model: "gpt-5.4-mini",
           stream: true,
           messages: [
             { role: "system", content: buildSystemPrompt(lezione, subtopic, level) },
