@@ -56,7 +56,7 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
     <div className="flex flex-col h-full">
       <div className="px-[18px] pt-7 pb-0">
         <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-1">Lezione {activeLezione.number}</p>
-        <h2 className="text-base font-semibold text-tx tracking-tight mb-3.5">{activeLezione.title}</h2>
+        <h2 className="text-base font-semibold text-tx mb-3.5" style={{ letterSpacing: '0.02em' }}>{activeLezione.title}</h2>
 
         {/* Progress bar */}
         <div className="flex items-center gap-2.5 mb-6">
@@ -232,20 +232,20 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="px-8 sm:px-10 pt-8 pb-10 max-w-[720px]"
+                className="px-10 sm:px-12 pt-10 pb-12 max-w-[720px]"
               >
                 {/* Eyebrow */}
-                <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-2">
+                <p className="text-2xs uppercase text-faint mb-3">
                   Lezione {activeLezione.number} · {activeLezione.title}
                 </p>
 
                 {/* Title */}
-                <h1 className="font-serif text-3xl font-normal leading-[1.15] mb-6">
+                <h1 className="font-serif text-3xl font-normal leading-[1.1] mb-8">
                   {activeSubtopic.title}
                 </h1>
 
                 {/* Bullets */}
-                <div className="flex flex-col gap-3.5 mb-7">
+                <div className="flex flex-col gap-[18px] mb-9">
                   {activeSubtopic.bullets.map((bullet, i) => (
                     <motion.div
                       key={i}

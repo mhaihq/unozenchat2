@@ -24,7 +24,7 @@ export default {
       },
       fontFamily: {
         sans:  ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        serif: ['Instrument Serif', 'Georgia', 'serif'],
+        serif: ['Cormorant Garamond', 'Georgia', 'serif'],
       },
       borderRadius: {
         sm: '6px',
@@ -33,14 +33,14 @@ export default {
         xl: '16px',
       },
       fontSize: {
-        '2xs': ['10px', { lineHeight: '1.4', letterSpacing: '0.1em' }],
+        '2xs': ['10px', { lineHeight: '1.4', letterSpacing: '0.18em' }],
         xs:    ['11px', { lineHeight: '1.5', letterSpacing: '0.03em' }],
         sm:    ['13px', { lineHeight: '1.5', letterSpacing: '0.025em' }],
         base:  ['14px', { lineHeight: '1.55', letterSpacing: '0.025em' }],
         lg:    ['15px', { lineHeight: '1.5', letterSpacing: '0.02em' }],
-        xl:    ['22px', { lineHeight: '1.2', letterSpacing: '0.01em' }],
-        '2xl': ['28px', { lineHeight: '1.1', letterSpacing: '0em' }],
-        '3xl': ['38px', { lineHeight: '1.15', letterSpacing: '-0.01em' }],
+        xl:    ['22px', { lineHeight: '1.2', letterSpacing: '0.02em' }],
+        '2xl': ['28px', { lineHeight: '1.1', letterSpacing: '0.005em' }],
+        '3xl': ['46px', { lineHeight: '1.1', letterSpacing: '0.005em' }],
       },
       boxShadow: {
         card: '0 1px 3px rgba(0,0,0,0.04)',
