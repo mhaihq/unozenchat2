@@ -232,7 +232,7 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.18 }}
-                className="px-10 sm:px-12 pt-10 pb-12 max-w-[720px]"
+                className="px-10 sm:px-14 pt-10 pb-12 w-full"
               >
                 {/* Eyebrow */}
                 <p className="text-2xs uppercase text-faint mb-3">
