@@ -123,7 +123,11 @@ export function LessonChat({ subtopic, lezione }: Props) {
         }),
       });
 
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("OpenAI error:", errText);
+        throw new Error(errText);
+      }
 
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
@@ -150,9 +154,10 @@ export function LessonChat({ subtopic, lezione }: Props) {
       setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, streaming: false } : m));
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
+      const msg = err instanceof Error ? err.message : "Errore sconosciuto";
       setMessages((prev) => prev.map((m) =>
         m.id === assistantId
-          ? { ...m, content: "Si è verificato un errore. Riprova tra un momento.", streaming: false }
+          ? { ...m, content: `Errore: ${msg}`, streaming: false }
           : m
       ));
     } finally {
