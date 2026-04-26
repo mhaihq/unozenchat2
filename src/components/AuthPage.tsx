@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Eye, EyeOff, BookOpen, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 import { supabase } from "../lib/supabase";
 import { isEmailAllowed } from "../lib/api";
 
@@ -61,9 +63,7 @@ export function AuthPage({ onAuth }: Props) {
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-grey-950 flex items-center justify-center mb-4 shadow-sm">
-            <BookOpen className="w-4.5 h-4.5 text-white" />
-          </div>
+          <img src={LOGO} alt="AI per Psicologi" className="h-12 w-auto mb-4 object-contain" />
           <h1 className="text-xl font-bold text-grey-950 tracking-tight">
             {mode === "login" ? "Accedi" : mode === "register" ? "Crea un account" : "Reimposta la password"}
           </h1>

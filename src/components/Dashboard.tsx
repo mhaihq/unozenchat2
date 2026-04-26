@@ -1,5 +1,7 @@
 import { motion } from "motion/react";
-import { BookOpen, ArrowRight, Settings, LogOut, Lock } from "lucide-react";
+import { ArrowRight, Settings, LogOut, Lock } from "lucide-react";
+
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 import { CORSO } from "../lib/courseData";
 
 interface Props {
@@ -18,10 +20,7 @@ export function Dashboard({ displayName, email, userAvatar, onOpenCourse, onAdmi
       {/* Top bar */}
       <header className="h-14 bg-white border-b border-grey-200 flex items-center px-6 gap-4">
         <div className="flex items-center gap-2.5 flex-1">
-          <div className="w-6 h-6 rounded-md bg-grey-950 flex items-center justify-center">
-            <BookOpen className="w-3 h-3 text-white" />
-          </div>
-          <span className="text-sm font-semibold text-grey-950 tracking-tight">AI per Psicologi</span>
+          <img src={LOGO} alt="AI per Psicologi" className="h-7 w-auto object-contain" />
         </div>
         <div className="flex items-center gap-2">
           <img src={userAvatar} className="w-6 h-6 rounded-full border border-grey-200" alt="" />
@@ -72,9 +71,7 @@ export function Dashboard({ displayName, email, userAvatar, onOpenCourse, onAdmi
                   {CORSO.length} lezioni · {CORSO.flatMap(l => l.subtopics).length} argomenti
                 </p>
               </div>
-              <div className="w-12 h-12 rounded-xl bg-grey-950 flex items-center justify-center flex-shrink-0">
-                <BookOpen className="w-5 h-5 text-white" />
-              </div>
+              <img src={LOGO} alt="" className="w-12 h-12 rounded-xl object-contain bg-grey-950 p-2 flex-shrink-0" />
             </div>
           </div>
 

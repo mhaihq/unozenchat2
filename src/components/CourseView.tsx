@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Square, ChevronRight, BookOpen, LogOut, Settings, Check, Menu, X, ChevronLeft } from "lucide-react";
+import { Square, ChevronRight, LogOut, Settings, Check, Menu, X, ChevronLeft } from "lucide-react";
+
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 import { CORSO } from "../lib/courseData";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { LessonChat } from "./LessonChat";
@@ -131,12 +133,9 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
           </button>
 
           {/* Back + Logo */}
-          <button onClick={onBack} className="flex items-center gap-2.5 group">
-            <ChevronLeft className="w-3.5 h-3.5 text-grey-400 group-hover:text-grey-700 transition-colors -mr-1" />
-            <div className="w-6 h-6 rounded-md bg-grey-950 flex items-center justify-center">
-              <BookOpen className="w-3 h-3 text-white" />
-            </div>
-            <span className="text-sm font-semibold text-grey-950 tracking-tight hidden sm:block">AI per Psicologi</span>
+          <button onClick={onBack} className="flex items-center gap-2 group">
+            <ChevronLeft className="w-3.5 h-3.5 text-grey-400 group-hover:text-grey-700 transition-colors" />
+            <img src={LOGO} alt="AI per Psicologi" className="h-7 w-auto object-contain" />
           </button>
         </div>
 

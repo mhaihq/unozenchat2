@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect } from "react";
-import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, BookOpen, RefreshCw, UserPlus, Mail } from "lucide-react";
+import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, RefreshCw, UserPlus, Mail } from "lucide-react";
+
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 import type { Document, UploadStatus } from "../lib/types";
 import { uploadDocument, deleteDocument, updateAdminPassword, fetchAllowedEmails, addAllowedEmail, removeAllowedEmail } from "../lib/api";
 
@@ -148,13 +150,11 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
   return (
     <div className="min-h-screen bg-bg-0 font-sans">
       {/* Header */}
-      <header className="bg-bg-100 border-b border-bg-300 px-6 py-3 flex items-center gap-3">
-        <div className="w-7 h-7 rounded-sage bg-primary-700 flex items-center justify-center">
-          <BookOpen className="w-3.5 h-3.5 text-white" />
-        </div>
+      <header className="bg-white border-b border-grey-200 px-6 py-3 flex items-center gap-3">
+        <img src={LOGO} alt="AI per Psicologi" className="h-7 w-auto object-contain" />
         <div className="flex-1">
-          <h1 className="text-sm font-semibold text-text-100">Assistente del Corso</h1>
-          <p className="text-xs text-text-400">Pannello amministratore</p>
+          <h1 className="text-sm font-semibold text-grey-950">AI per Psicologi</h1>
+          <p className="text-xs text-grey-500">Pannello amministratore</p>
         </div>
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-charcoal-100 text-charcoal-700 border border-charcoal-300">
           Admin
