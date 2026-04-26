@@ -1,48 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --bg-0:   #f8f8f8;
-  --bg-000: #f8f8f8;
-  --bg-100: #ffffff;
-  --bg-200: #f0f0f0;
-  --bg-300: #e4e4e4;
-  --text-100: #1a1a19;
-  --text-200: #4d4d4c;
-  --text-300: #6c6a69;
-  --text-400: #9b9a98;
-  --text-500: #bbbab9;
-  --accent: #2463eb;
-  --accent-hover: #1c4ed8;
-  --radius: 6px;
+  --bg:           #FAFAF7;
+  --surface:      #FFFFFF;
+  --surface-2:    #F4F2EC;
+  --border:       rgba(20,20,20,0.08);
+  --border-strong: rgba(20,20,20,0.16);
+  --text:         #1A1A1A;
+  --text-muted:   #4A4A4A;
+  --text-faint:   #7A7A7A;
+  --accent:       #0F6E56;
+  --accent-soft:  #E1F5EE;
+  --accent-deep:  #04342C;
+  --purple-soft:  #EEEDFE;
+  --purple-deep:  #3C3489;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  letter-spacing: 0.03em;
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.2s ease forwards;
+html, body {
+  background: var(--bg);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: 0em;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--bg-300);
-  border-radius: 99px;
+
+.font-serif {
+  font-family: 'Instrument Serif', Georgia, serif;
+  letter-spacing: 0.02em;
 }

@@ -18,8 +18,6 @@ interface Props {
   lezione: Lezione;
 }
 
-const BOT_AVATAR = "https://api.dicebear.com/9.x/bottts-neutral/svg?seed=corso&backgroundColor=dbe9fe";
-
 const LEVELS: { value: Level; label: string }[] = [
   { value: "beginner",     label: "Principiante" },
   { value: "intermediate", label: "Intermedio"   },
@@ -173,23 +171,23 @@ export function LessonChat({ subtopic, lezione }: Props) {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="bg-white rounded-xl border border-grey-200 shadow-sm overflow-hidden">
+    <div className="bg-surface2 rounded-lg overflow-hidden">
 
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-grey-150 flex-wrap gap-y-2">
-        <Sparkles className="w-4 h-4 text-primary-300 flex-shrink-0" />
-        <span className="text-sm font-semibold text-grey-900 flex-1">Chatta con l'AI</span>
+      <div className="flex items-center gap-3 px-4 py-3 flex-wrap gap-y-2">
+        <Sparkles className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+        <span className="text-xs font-medium text-muted flex-1 uppercase tracking-[0.08em]">Assistente AI</span>
 
-        {/* Level pills */}
-        <div className="flex items-center gap-px bg-grey-150 rounded-lg p-0.5">
+        {/* Level toggle */}
+        <div className="flex items-center gap-px bg-[rgba(20,20,20,0.06)] rounded-md p-0.5">
           {LEVELS.map((l) => (
             <button
               key={l.value}
               onClick={() => { setLevel(l.value); setMessages([]); }}
-              className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${
+              className={`px-2.5 py-1 rounded-[5px] text-xs font-medium transition-all whitespace-nowrap ${
                 level === l.value
-                  ? "bg-white text-grey-950 shadow-xs"
-                  : "text-grey-600 hover:text-grey-900"
+                  ? "bg-purple-soft text-purple-deep shadow-sm"
+                  : "text-muted hover:text-tx"
               }`}
             >
               {l.label}
@@ -200,28 +198,25 @@ export function LessonChat({ subtopic, lezione }: Props) {
 
       {/* Suggested questions — empty state */}
       {!hasMessages && (
-        <div className="px-4 sm:px-5 py-5">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-grey-500 mb-3">Domande suggerite</p>
-          <div className="flex flex-col gap-2">
-            {subtopic.suggestedQuestions.map((q, i) => (
-              <motion.button
-                key={i}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }}
-                onClick={() => sendMessage(q)}
-                className="w-full text-left px-4 py-2.5 rounded-lg border border-grey-200 bg-grey-100 hover:bg-grey-150 hover:border-grey-300 text-sm text-grey-800 transition-all"
-              >
-                {q}
-              </motion.button>
-            ))}
-          </div>
+        <div className="px-4 pb-4 flex flex-col gap-1.5">
+          {subtopic.suggestedQuestions.map((q, i) => (
+            <motion.button
+              key={i}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+              onClick={() => sendMessage(q)}
+              className="w-full text-left px-3.5 py-2.5 rounded-md border border-[rgba(20,20,20,0.08)] bg-surface text-sm text-muted hover:text-tx hover:border-[rgba(20,20,20,0.16)] transition-all"
+            >
+              {q}
+            </motion.button>
+          ))}
         </div>
       )}
 
       {/* Messages */}
       {hasMessages && (
-        <div className="px-4 sm:px-5 py-4 space-y-5 max-h-80 sm:max-h-96 overflow-y-auto">
+        <div className="px-4 py-3 space-y-4 max-h-80 overflow-y-auto">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div
@@ -229,19 +224,16 @@ export function LessonChat({ subtopic, lezione }: Props) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.16 }}
-                className={`flex items-start gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+                className={`flex items-start gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
               >
-                {msg.role === "assistant" && (
-                  <img src={BOT_AVATAR} className="w-7 h-7 rounded-full flex-shrink-0 mt-0.5 border border-grey-200" alt="" />
-                )}
-                <div className={`max-w-[84%] px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-primary-300 text-white rounded-br-sm"
-                    : "bg-grey-100 text-grey-900 rounded-bl-sm border border-grey-200"
+                    ? "bg-accent text-white rounded-br-sm"
+                    : "bg-surface text-tx rounded-bl-sm border border-[rgba(20,20,20,0.08)]"
                 }`}>
                   {msg.content}
                   {msg.streaming && (
-                    <span className="inline-block w-0.5 h-3.5 bg-primary-300 ml-0.5 align-middle animate-pulse" />
+                    <span className="inline-block w-0.5 h-3.5 bg-accent ml-0.5 align-middle animate-pulse" />
                   )}
                 </div>
               </motion.div>
@@ -251,15 +243,15 @@ export function LessonChat({ subtopic, lezione }: Props) {
         </div>
       )}
 
-      {/* Compact chips after first message */}
+      {/* Compact suggestion chips after first message */}
       {hasMessages && (
-        <div className="px-4 sm:px-5 pb-3 flex flex-wrap gap-1.5">
+        <div className="px-4 pb-3 flex flex-wrap gap-1.5">
           {subtopic.suggestedQuestions.map((q, i) => (
             <button
               key={i}
               onClick={() => sendMessage(q)}
               disabled={isStreaming}
-              className="text-xs px-3 py-1 rounded-full border border-grey-200 bg-grey-100 text-grey-700 hover:border-grey-300 hover:text-grey-950 transition-all disabled:opacity-40 truncate max-w-[220px]"
+              className="text-xs px-3 py-1 rounded-full border border-[rgba(20,20,20,0.08)] bg-surface text-muted hover:text-tx hover:border-[rgba(20,20,20,0.16)] transition-all disabled:opacity-40 truncate max-w-[220px]"
             >
               {q}
             </button>
@@ -267,8 +259,8 @@ export function LessonChat({ subtopic, lezione }: Props) {
         </div>
       )}
 
-      {/* Input */}
-      <div className="px-3 sm:px-4 py-3 border-t border-grey-150 flex items-end gap-2">
+      {/* Input row */}
+      <div className="px-3 py-2.5 border-t border-[rgba(20,20,20,0.06)] flex items-end gap-2">
         <textarea
           ref={inputRef}
           value={input}
@@ -276,34 +268,34 @@ export function LessonChat({ subtopic, lezione }: Props) {
           onKeyDown={handleKeyDown}
           placeholder="Scrivi una domanda su questo argomento..."
           rows={1}
-          className="flex-1 resize-none px-3.5 py-2.5 text-sm bg-grey-100 rounded-lg border border-grey-200 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-blue-200 text-grey-950 placeholder-grey-500 transition-all max-h-32 leading-relaxed"
+          className="flex-1 resize-none px-3 py-2 text-sm bg-surface rounded-md border border-[rgba(20,20,20,0.08)] focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 text-tx placeholder-faint transition-all max-h-28 leading-relaxed"
           style={{ overflowY: "auto" }}
         />
         <button
           onClick={toggleVoice}
           title={voiceState === "recording" ? "Ferma registrazione" : "Registra messaggio vocale"}
-          className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 transition-all border ${
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
             voiceState === "recording"
-              ? "bg-red-500 border-red-500 text-white"
+              ? "bg-red-500 text-white"
               : voiceState === "transcribing"
-              ? "bg-grey-150 border-grey-200 text-grey-500"
-              : "bg-grey-100 border-grey-200 text-grey-600 hover:border-grey-300 hover:text-grey-950"
+              ? "bg-surface2 text-faint"
+              : "bg-surface border border-[rgba(20,20,20,0.08)] text-muted hover:text-tx"
           }`}
         >
           {voiceState === "transcribing" ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : voiceState === "recording" ? (
-            <MicOff className="w-4 h-4" />
+            <MicOff className="w-3.5 h-3.5" />
           ) : (
-            <Mic className="w-4 h-4" />
+            <Mic className="w-3.5 h-3.5" />
           )}
         </button>
         <button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || isStreaming}
-          className="w-9 h-9 rounded-lg bg-primary-300 text-white flex items-center justify-center flex-shrink-0 hover:bg-primary-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs"
+          className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 hover:bg-accent-deep disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          {isStreaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          {isStreaming ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
         </button>
       </div>
     </div>

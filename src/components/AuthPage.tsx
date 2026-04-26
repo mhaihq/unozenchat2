@@ -55,30 +55,30 @@ export function AuthPage({ onAuth }: Props) {
     }
   }
 
-  const inputClass = "w-full px-3.5 py-2.5 text-sm border border-grey-200 rounded-lg bg-white text-grey-950 placeholder-grey-400 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-blue-150 transition-all";
+  const inputClass = "w-full px-3.5 py-2.5 text-sm border border-[rgba(20,20,20,0.12)] rounded-md bg-white text-tx placeholder-faint focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all";
 
   return (
-    <div className="min-h-screen bg-grey-100 flex items-center justify-center px-4 font-sans">
-      <div className="w-full max-w-[400px]">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 font-sans">
+      <div className="w-full max-w-[380px]">
 
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <img src={LOGO} alt="AI per Psicologi" className="h-12 w-auto mb-4 object-contain" />
-          <h1 className="text-xl font-bold text-grey-950 tracking-tight">
+          <img src={LOGO} alt="AI per Psicologi" className="h-10 w-auto mb-5 object-contain" />
+          <h1 className="font-serif text-2xl font-normal tracking-tight text-tx">
             {mode === "login" ? "Accedi" : mode === "register" ? "Crea un account" : "Reimposta la password"}
           </h1>
-          <p className="text-sm text-grey-500 mt-1 text-center">
+          <p className="text-sm text-muted mt-1.5 text-center">
             {mode === "login" ? "Bentornato nel corso AI per Psicologi" : mode === "register" ? "Inizia il tuo percorso" : "Ti invieremo un link via email"}
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white border border-grey-200 rounded-2xl shadow-sm p-6">
+        <div className="bg-surface border border-[rgba(20,20,20,0.08)] rounded-xl shadow-card p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {mode === "register" && (
               <div>
-                <label className="block text-xs font-semibold text-grey-700 mb-1.5">Nome completo</label>
+                <label className="block text-xs font-medium text-muted mb-1.5">Nome completo</label>
                 <input
                   type="text"
                   value={name}
@@ -91,7 +91,7 @@ export function AuthPage({ onAuth }: Props) {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-grey-700 mb-1.5">Email</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
@@ -105,12 +105,12 @@ export function AuthPage({ onAuth }: Props) {
             {mode !== "forgot" && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-grey-700">Password</label>
+                  <label className="block text-xs font-medium text-muted">Password</label>
                   {mode === "login" && (
                     <button
                       type="button"
                       onClick={() => { setMode("forgot"); reset(); }}
-                      className="text-xs text-primary-300 hover:text-primary-400 font-medium transition-colors"
+                      className="text-xs text-accent hover:text-accent-deep font-medium transition-colors"
                     >
                       Password dimenticata?
                     </button>
@@ -129,7 +129,7 @@ export function AuthPage({ onAuth }: Props) {
                     type="button"
                     tabIndex={-1}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-400 hover:text-grey-700 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -138,12 +138,12 @@ export function AuthPage({ onAuth }: Props) {
             )}
 
             {error && (
-              <div className="px-3.5 py-2.5 bg-red-100 border border-red-200 rounded-lg text-sm text-red-700">
+              <div className="px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
                 {error}
               </div>
             )}
             {info && (
-              <div className="px-3.5 py-2.5 bg-green-100 border border-green-200 rounded-lg text-sm text-green-700">
+              <div className="px-3.5 py-2.5 bg-accent-soft border border-accent/20 rounded-md text-sm text-accent-deep">
                 {info}
               </div>
             )}
@@ -151,7 +151,7 @@ export function AuthPage({ onAuth }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-grey-950 hover:bg-grey-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors mt-1"
+              className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-deep disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 px-4 rounded-md transition-colors mt-1"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading
@@ -166,23 +166,23 @@ export function AuthPage({ onAuth }: Props) {
         </div>
 
         {/* Mode switcher */}
-        <p className="text-center text-sm text-grey-500 mt-5">
+        <p className="text-center text-sm text-muted mt-5">
           {mode === "login" && (
             <>Non hai un account?{" "}
-              <button onClick={() => { setMode("register"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+              <button onClick={() => { setMode("register"); reset(); }} className="text-tx font-medium hover:underline">
                 Registrati
               </button>
             </>
           )}
           {mode === "register" && (
             <>Hai già un account?{" "}
-              <button onClick={() => { setMode("login"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+              <button onClick={() => { setMode("login"); reset(); }} className="text-tx font-medium hover:underline">
                 Accedi
               </button>
             </>
           )}
           {mode === "forgot" && (
-            <button onClick={() => { setMode("login"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+            <button onClick={() => { setMode("login"); reset(); }} className="text-tx font-medium hover:underline">
               ← Torna al login
             </button>
           )}

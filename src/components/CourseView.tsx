@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Square, ChevronRight, LogOut, Settings, Check, Menu, X, ChevronLeft } from "lucide-react";
-
-const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
+import { Check, ChevronLeft, Menu, X, Settings, LogOut } from "lucide-react";
 import { CORSO } from "../lib/courseData";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { LessonChat } from "./LessonChat";
+
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 
 interface Props {
   displayName: string;
@@ -24,8 +24,7 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
   function toggleCompleted(id: string) {
     setCompleted((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }
@@ -49,35 +48,30 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
   const totalCompleted = CORSO.flatMap((l) => l.subtopics).filter((s) => completed.has(s.id)).length;
   const overallPct = Math.round((totalCompleted / totalSubtopics) * 100);
   const lessonCompleted = activeLezione.subtopics.filter((s) => completed.has(s.id)).length;
-  const lessonPct = Math.round((lessonCompleted / activeLezione.subtopics.length) * 100);
+  const circumference = 2 * Math.PI * 14;
+
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Lesson label */}
-      <div className="px-6 pt-6 pb-4 flex-shrink-0">
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-grey-400 mb-1">
-          Lezione {activeLezione.number}
-        </p>
-        <p className="text-sm font-semibold text-grey-950 leading-snug">{activeLezione.title}</p>
+      <div className="px-[18px] pt-7 pb-0">
+        <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-1">Lezione {activeLezione.number}</p>
+        <h2 className="text-base font-semibold text-tx tracking-tight mb-3.5">{activeLezione.title}</h2>
 
-        {/* Mini progress bar */}
-        <div className="mt-3 h-0.5 bg-grey-150 rounded-full overflow-hidden">
-          <motion.div
-            className="h-full bg-primary-300 rounded-full"
-            animate={{ width: `${lessonPct}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
+        {/* Progress bar */}
+        <div className="flex items-center gap-2.5 mb-6">
+          <div className="flex-1 h-[3px] rounded-full bg-surface2 overflow-hidden">
+            <motion.div
+              className="h-full bg-accent rounded-full"
+              animate={{ width: `${(lessonCompleted / activeLezione.subtopics.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+          <span className="text-xs text-faint tabular-nums">{lessonCompleted}/{activeLezione.subtopics.length}</span>
         </div>
-        <p className="text-[11px] text-grey-400 mt-1.5 tabular-nums">
-          {lessonCompleted} di {activeLezione.subtopics.length} completati
-        </p>
       </div>
 
-      {/* Divider */}
-      <div className="mx-6 border-t border-grey-150" />
-
-      {/* Subtopics */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-px">
+      <nav className="flex-1 overflow-y-auto px-[18px] pb-4 flex flex-col gap-0.5">
         {activeLezione.subtopics.map((sub, idx) => {
           const isActive = sub.id === activeSubtopic.id;
           const isDone = completed.has(sub.id);
@@ -85,30 +79,27 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
             <button
               key={sub.id}
               onClick={() => selectSubtopic(sub)}
-              className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group ${
+              className={`flex items-center gap-3 py-[11px] px-3 rounded-md text-left transition-all ${
                 isActive
-                  ? "bg-grey-950 text-white"
-                  : "text-grey-700 hover:bg-grey-100 hover:text-grey-950"
+                  ? "bg-accent-soft border-l-2 border-accent pl-[10px] rounded-l-none"
+                  : "hover:bg-surface2"
               }`}
             >
-              {/* Checkbox */}
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleCompleted(sub.id); }}
-                className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-all ${
-                  isDone
-                    ? "bg-green-500 border-green-500 text-white"
-                    : isActive
-                    ? "border-grey-500 hover:border-white"
-                    : "border-grey-300 group-hover:border-grey-400"
-                }`}
-              >
-                {isDone && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-              </button>
-
-              <span className={`text-xs leading-snug flex-1 min-w-0 truncate ${
-                isDone && !isActive ? "text-grey-400 line-through" : ""
+              <div className={`w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center border text-xs font-medium transition-all ${
+                isDone
+                  ? "bg-accent-soft border-accent-soft text-accent"
+                  : isActive
+                  ? "bg-accent border-accent text-white"
+                  : "border-[rgba(20,20,20,0.16)] text-muted"
               }`}>
-                <span className={`mr-1 ${isActive ? "text-grey-400" : "text-grey-400"}`}>{idx + 1}.</span>
+                {isDone
+                  ? <Check className="w-2.5 h-2.5 stroke-[2]" />
+                  : <span>{idx + 1}</span>
+                }
+              </div>
+              <span className={`text-sm truncate ${
+                isActive ? "text-accent-deep font-medium" : "text-muted"
+              }`}>
                 {sub.title}
               </span>
             </button>
@@ -119,207 +110,198 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
   );
 
   return (
-    <div className="flex flex-col h-screen bg-grey-100 font-sans overflow-hidden">
+    <div className="min-h-screen bg-bg font-sans">
+      <div className="max-w-[1280px] mx-auto my-6 bg-surface rounded-xl border border-[rgba(20,20,20,0.08)] overflow-hidden shadow-card">
 
-      {/* Top nav */}
-      <header className="flex-shrink-0 h-13 flex items-stretch bg-white border-b border-grey-200 px-0">
-        <div className="flex items-center gap-3 px-4 border-r border-grey-150 flex-shrink-0">
-          {/* Mobile menu */}
-          <button
-            onClick={() => setSidebarOpen((v) => !v)}
-            className="md:hidden w-7 h-7 rounded flex items-center justify-center text-grey-500 hover:text-grey-900 hover:bg-grey-100 transition-colors"
-          >
-            {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
+        {/* Top bar */}
+        <header className="flex items-center justify-between px-6 py-[14px] border-b border-[rgba(20,20,20,0.08)]">
+          <div className="flex items-center gap-8">
+            {/* Mobile menu */}
+            <button
+              onClick={() => setSidebarOpen((v) => !v)}
+              className="md:hidden text-muted hover:text-tx transition-colors"
+            >
+              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
 
-          {/* Back + Logo */}
-          <button onClick={onBack} className="flex items-center gap-2 group">
-            <ChevronLeft className="w-3.5 h-3.5 text-grey-400 group-hover:text-grey-700 transition-colors" />
-            <img src={LOGO} alt="AI per Psicologi" className="h-7 w-auto object-contain" />
-          </button>
-        </div>
+            {/* Brand */}
+            <button onClick={onBack} className="flex items-center gap-2 group">
+              <ChevronLeft className="w-3.5 h-3.5 text-faint group-hover:text-muted transition-colors" />
+              <img src={LOGO} alt="Unozen" className="h-6 w-auto object-contain" />
+            </button>
 
-        {/* Lesson tabs — underline style */}
-        <nav className="hidden md:flex flex-1 items-stretch overflow-x-auto">
-          {CORSO.map((lezione) => {
-            const isActive = lezione.id === activeLezione.id;
-            const done = lezione.subtopics.every((s) => completed.has(s.id));
-            return (
-              <button
-                key={lezione.id}
-                onClick={() => selectLezione(lezione)}
-                className={`relative flex items-center gap-2 px-5 text-sm font-medium transition-colors border-b-2 ${
-                  isActive
-                    ? "text-grey-950 border-grey-950"
-                    : "text-grey-500 border-transparent hover:text-grey-800 hover:border-grey-300"
-                }`}
-              >
-                {done && (
-                  <span className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
-                  </span>
-                )}
-                Lezione {lezione.number}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Mobile: current context */}
-        <div className="flex-1 md:hidden flex items-center px-4 min-w-0">
-          <span className="text-sm font-medium text-grey-700 truncate">Lezione {activeLezione.number} · {activeSubtopic.title}</span>
-        </div>
-
-        {/* Right */}
-        <div className="flex items-center gap-1 px-4 border-l border-grey-150 flex-shrink-0">
-          {/* Overall progress */}
-          <div className="hidden md:flex items-center gap-2.5 mr-2">
-            <div className="relative w-6 h-6">
-              <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="#e4e4e4" strokeWidth="2.5" />
-                <circle
-                  cx="12" cy="12" r="9" fill="none"
-                  stroke="#2463eb" strokeWidth="2.5"
-                  strokeDasharray={`${2 * Math.PI * 9}`}
-                  strokeDashoffset={`${2 * Math.PI * 9 * (1 - overallPct / 100)}`}
-                  strokeLinecap="round"
-                  style={{ transition: "stroke-dashoffset 0.5s ease" }}
-                />
-              </svg>
-            </div>
-            <span className="text-xs font-semibold text-grey-700 tabular-nums">{overallPct}%</span>
+            {/* Nav tabs */}
+            <nav className="hidden md:flex gap-7">
+              {CORSO.map((lezione) => {
+                const isActive = lezione.id === activeLezione.id;
+                return (
+                  <button
+                    key={lezione.id}
+                    onClick={() => selectLezione(lezione)}
+                    className={`relative text-sm py-[14px] -my-[14px] transition-colors ${
+                      isActive ? "text-tx font-medium" : "text-faint hover:text-muted"
+                    }`}
+                  >
+                    Lezione {lezione.number}
+                    {isActive && (
+                      <span className="absolute left-0 right-0 -bottom-px h-[1.5px] bg-tx" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          <img src={userAvatar} className="w-6 h-6 rounded-full border border-grey-200" alt="" />
-          <span className="hidden lg:block text-xs text-grey-600 font-medium ml-1 mr-1">{displayName}</span>
-
-          <button onClick={onAdmin} title="Amministrazione" className="w-8 h-8 rounded-lg flex items-center justify-center text-grey-400 hover:text-grey-800 hover:bg-grey-100 transition-colors">
-            <Settings className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={onSignOut} title="Esci" className="w-8 h-8 rounded-lg flex items-center justify-center text-grey-400 hover:text-grey-800 hover:bg-grey-100 transition-colors">
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </header>
-
-      {/* Body */}
-      <div className="flex flex-1 overflow-hidden relative">
-
-        {/* Mobile overlay */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setSidebarOpen(false)}
-              className="md:hidden absolute inset-0 bg-grey-950/50 z-20"
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Mobile sidebar drawer */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ type: "spring", damping: 30, stiffness: 280 }}
-              className="md:hidden absolute left-0 top-0 bottom-0 w-72 bg-white border-r border-grey-200 z-30 shadow-xl"
-            >
-              <SidebarContent />
-            </motion.aside>
-          )}
-        </AnimatePresence>
-
-        {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-60 flex-shrink-0 bg-white border-r border-grey-200 flex-col overflow-hidden">
-          <SidebarContent />
-        </aside>
-
-        {/* Main */}
-        <main className="flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeSubtopic.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.16 }}
-              className="max-w-[680px] mx-auto px-5 sm:px-8 pt-8 pb-16 space-y-6"
-            >
-              {/* Eyebrow */}
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-grey-400">
-                <span>Lezione {activeLezione.number}</span>
-                <span className="text-grey-300">·</span>
-                <span>{activeLezione.title}</span>
-              </div>
-
-              {/* Title */}
-              <h1 className="text-[26px] sm:text-[32px] font-bold text-grey-950 leading-[1.15] tracking-tight -mt-1">
-                {activeSubtopic.title}
-              </h1>
-
-              {/* Bullets */}
-              <ul className="space-y-3 pt-1">
-                {activeSubtopic.bullets.map((bullet, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -4 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.07 }}
-                    className="flex items-start gap-3.5"
-                  >
-                    <span className="mt-[9px] w-1 h-1 rounded-full bg-grey-400 flex-shrink-0" />
-                    <span className="text-[15px] text-grey-700 leading-[1.65]">{bullet}</span>
-                  </motion.li>
-                ))}
-              </ul>
-
-              {/* Divider */}
-              <div className="border-t border-grey-150 pt-2" />
-
-              {/* AI Chat */}
-              <LessonChat subtopic={activeSubtopic} lezione={activeLezione} />
-
-              {/* Footer nav */}
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-                <button
-                  onClick={() => toggleCompleted(activeSubtopic.id)}
-                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all border ${
-                    completed.has(activeSubtopic.id)
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-white text-grey-700 border-grey-200 hover:border-grey-300 hover:text-grey-950"
-                  }`}
-                >
-                  {completed.has(activeSubtopic.id)
-                    ? <><Check className="w-4 h-4" /> Completato</>
-                    : <><Square className="w-4 h-4" /> Segna come completato</>
-                  }
-                </button>
-
-                <div className="flex items-center gap-2 justify-end">
-                  <button
-                    onClick={() => prevSubtopic && setActiveSubtopic(prevSubtopic)}
-                    disabled={!prevSubtopic}
-                    className="px-4 py-2.5 text-sm font-medium text-grey-500 hover:text-grey-900 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
-                  >
-                    ← Precedente
-                  </button>
-                  <button
-                    onClick={() => nextSubtopic && setActiveSubtopic(nextSubtopic)}
-                    disabled={!nextSubtopic}
-                    className="px-5 py-2.5 text-sm font-semibold bg-grey-950 text-white rounded-lg hover:bg-grey-800 disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Prossimo →
-                  </button>
+          {/* Right */}
+          <div className="flex items-center gap-3">
+            {/* Progress ring */}
+            <div className="hidden md:flex items-center gap-2">
+              <div className="relative w-8 h-8" title={`${overallPct}% completato`}>
+                <svg className="-rotate-90 w-8 h-8" viewBox="0 0 32 32">
+                  <circle cx="16" cy="16" r="14" fill="none" stroke="var(--border)" strokeWidth="2.5" />
+                  <circle
+                    cx="16" cy="16" r="14" fill="none"
+                    stroke="var(--accent)" strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={circumference * (1 - overallPct / 100)}
+                    style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center text-[9px] font-medium text-muted">
+                  {overallPct}
                 </div>
               </div>
-            </motion.div>
+            </div>
+
+            {/* User pill */}
+            <div className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full border border-[rgba(20,20,20,0.08)] hover:bg-surface2 transition-colors cursor-pointer">
+              <div className="w-6 h-6 rounded-full bg-accent-soft text-accent flex items-center justify-center text-[10px] font-semibold tracking-wide">
+                {initials}
+              </div>
+              <span className="text-xs text-muted font-medium hidden sm:block">{displayName}</span>
+            </div>
+
+            <button onClick={onAdmin} title="Admin" className="text-faint hover:text-muted transition-colors p-1">
+              <Settings className="w-4 h-4" />
+            </button>
+            <button onClick={onSignOut} title="Esci" className="text-faint hover:text-muted transition-colors p-1">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+
+        {/* Body */}
+        <div className="flex relative" style={{ minHeight: 640 }}>
+
+          {/* Mobile overlay */}
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="md:hidden absolute inset-0 bg-black/30 z-20"
+              />
+            )}
           </AnimatePresence>
-        </main>
+
+          {/* Mobile drawer */}
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.aside
+                initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+                transition={{ type: "spring", damping: 30, stiffness: 280 }}
+                className="md:hidden absolute left-0 top-0 bottom-0 w-64 bg-surface border-r border-[rgba(20,20,20,0.08)] z-30"
+              >
+                <SidebarContent />
+              </motion.aside>
+            )}
+          </AnimatePresence>
+
+          {/* Desktop sidebar */}
+          <aside className="hidden md:block w-[248px] flex-shrink-0 border-r border-[rgba(20,20,20,0.08)]">
+            <SidebarContent />
+          </aside>
+
+          {/* Main content */}
+          <main className="flex-1 overflow-y-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSubtopic.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18 }}
+                className="px-8 sm:px-10 pt-8 pb-10 max-w-[720px]"
+              >
+                {/* Eyebrow */}
+                <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-2">
+                  Lezione {activeLezione.number} · {activeLezione.title}
+                </p>
+
+                {/* Title */}
+                <h1 className="font-serif text-3xl font-normal leading-[1.15] mb-6">
+                  {activeSubtopic.title}
+                </h1>
+
+                {/* Bullets */}
+                <div className="flex flex-col gap-3.5 mb-7">
+                  {activeSubtopic.bullets.map((bullet, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.07 }}
+                      className="flex gap-3.5 items-start"
+                    >
+                      <div className="w-8 h-8 rounded-md bg-surface2 flex-shrink-0 flex items-center justify-center mt-0.5">
+                        <span className="text-xs font-medium text-muted">{i + 1}</span>
+                      </div>
+                      <p className="text-base text-tx leading-[1.55] flex-1 pt-[5px]">{bullet}</p>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* AI Chat */}
+                <LessonChat subtopic={activeSubtopic} lezione={activeLezione} />
+
+                {/* Footer nav */}
+                <div className="flex items-center justify-between mt-8">
+                  <button
+                    onClick={() => toggleCompleted(activeSubtopic.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all border ${
+                      completed.has(activeSubtopic.id)
+                        ? "bg-accent-soft text-accent border-accent-soft"
+                        : "bg-surface text-muted border-[rgba(20,20,20,0.08)] hover:border-[rgba(20,20,20,0.16)]"
+                    }`}
+                  >
+                    {completed.has(activeSubtopic.id)
+                      ? <><Check className="w-3.5 h-3.5" /> Completato</>
+                      : "Segna come completato"
+                    }
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => prevSubtopic && setActiveSubtopic(prevSubtopic)}
+                      disabled={!prevSubtopic}
+                      className="px-4 py-2 text-sm text-muted hover:text-tx disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      ← Precedente
+                    </button>
+                    <button
+                      onClick={() => nextSubtopic && setActiveSubtopic(nextSubtopic)}
+                      disabled={!nextSubtopic}
+                      className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Prossimo →
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </main>
+        </div>
       </div>
     </div>
   );

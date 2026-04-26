@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { RotateCcw, Settings, LogOut, BookOpen, FileText, ChevronDown, SendHorizonal, Mic, MicOff, Loader2 } from "lucide-react";
+import { RotateCcw, Settings, LogOut, BookOpen, FileText, ChevronDown, SendHorizonal, Mic, MicOff, Loader2 } from "lucide-react"; // BookOpen used in unreachable legacy code below
 import { motion, AnimatePresence } from "motion/react";
 import { useVoiceRecorder } from "./hooks/useVoiceRecorder";
 import { AdminLogin } from "./components/AdminLogin";
@@ -159,14 +159,11 @@ export default function App() {
 
   if (user === undefined) {
     return (
-      <div className="min-h-screen bg-grey-100 flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-grey-950 flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-white" />
-          </div>
           <div className="flex gap-1">
             {[0, 150, 300].map((d) => (
-              <span key={d} className="w-1.5 h-1.5 bg-grey-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
+              <span key={d} className="w-1.5 h-1.5 bg-accent rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
             ))}
           </div>
         </div>
