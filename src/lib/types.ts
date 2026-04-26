@@ -15,4 +15,4 @@ export interface Document {
 
 export type UploadStatus = "idle" | "reading" | "processing" | "done" | "error";
 
-export type AppView = "student" | "admin";
+export type AppView = "dashboard" | "course" | "admin";

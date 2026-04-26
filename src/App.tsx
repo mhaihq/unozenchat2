@@ -5,6 +5,7 @@ import { useVoiceRecorder } from "./hooks/useVoiceRecorder";
 import { AdminLogin } from "./components/AdminLogin";
 import { AdminPanel } from "./components/AdminPanel";
 import { AuthPage } from "./components/AuthPage";
+import { Dashboard } from "./components/Dashboard";
 import { CourseView } from "./components/CourseView";
 import { supabase } from "./lib/supabase";
 import { createSession, sendMessage, fetchDocuments } from "./lib/api";
@@ -75,7 +76,7 @@ function TypingBubble() {
 
 export default function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [view, setView] = useState<AppView>("student");
+  const [view, setView] = useState<AppView>("dashboard");
   const [adminAuthed, setAdminAuthed] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [isTyping, setIsTyping] = useState(false);
@@ -152,20 +153,20 @@ export default function App() {
     setMessages([WELCOME]);
     setSessionId(null);
     setDocuments([]);
-    setView("student");
+    setView("dashboard");
     setAdminAuthed(false);
   }
 
   if (user === undefined) {
     return (
-      <div className="min-h-screen bg-charcoal-100 flex items-center justify-center">
+      <div className="min-h-screen bg-grey-100 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-sage-lg bg-primary-700 flex items-center justify-center shadow-sage">
-            <BookOpen className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-grey-950 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-white" />
           </div>
           <div className="flex gap-1">
             {[0, 150, 300].map((d) => (
-              <span key={d} className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
+              <span key={d} className="w-1.5 h-1.5 bg-grey-400 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
             ))}
           </div>
         </div>
@@ -174,13 +175,27 @@ export default function App() {
   }
 
   if (!user) return <AuthPage onAuth={() => {}} />;
+
   if (view === "admin") {
-    if (!adminAuthed) return <AdminLogin onSuccess={() => setAdminAuthed(true)} onBack={() => setView("student")} />;
-    return <AdminPanel documents={documents} onDocumentsChange={setDocuments} onLogout={() => { setAdminAuthed(false); setView("student"); }} />;
+    if (!adminAuthed) return <AdminLogin onSuccess={() => setAdminAuthed(true)} onBack={() => setView("dashboard")} />;
+    return <AdminPanel documents={documents} onDocumentsChange={setDocuments} onLogout={() => { setAdminAuthed(false); setView("dashboard"); }} />;
   }
 
-  const displayName = user.user_metadata?.full_name?.split(" ")[0] ?? user.email?.split("@")[0] ?? "You";
+  const displayName = user.user_metadata?.full_name?.split(" ")[0] ?? user.email?.split("@")[0] ?? "Tu";
   const userAvatar = `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d1d4f9`;
+
+  if (view === "dashboard") {
+    return (
+      <Dashboard
+        displayName={displayName}
+        email={user.email ?? ""}
+        userAvatar={userAvatar}
+        onOpenCourse={() => setView("course")}
+        onAdmin={() => setView("admin")}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
 
   return (
     <CourseView
@@ -188,6 +203,7 @@ export default function App() {
       userAvatar={userAvatar}
       onAdmin={() => setView("admin")}
       onSignOut={handleSignOut}
+      onBack={() => setView("dashboard")}
     />
   );
 

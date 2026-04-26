@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, BookOpen, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 type AuthMode = "login" | "register" | "forgot";
@@ -50,59 +50,65 @@ export function AuthPage({ onAuth }: Props) {
     }
   }
 
+  const inputClass = "w-full px-3.5 py-2.5 text-sm border border-grey-200 rounded-lg bg-white text-grey-950 placeholder-grey-400 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-blue-150 transition-all";
+
   return (
-    <div className="min-h-screen bg-bg-0 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-grey-100 flex items-center justify-center px-4 font-sans">
       <div className="w-full max-w-[400px]">
-        {/* Logo / Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-sage-lg bg-primary-700 mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.966 8.966 0 00-6 2.292m0-14.25v14.25" />
-            </svg>
+
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-10 h-10 rounded-xl bg-grey-950 flex items-center justify-center mb-4 shadow-sm">
+            <BookOpen className="w-4.5 h-4.5 text-white" />
           </div>
-          <h1 className="text-xl font-semibold text-text-100">
-            {mode === "login" ? "Accedi al tuo account" : mode === "register" ? "Crea un account" : "Reimposta la password"}
+          <h1 className="text-xl font-bold text-grey-950 tracking-tight">
+            {mode === "login" ? "Accedi" : mode === "register" ? "Crea un account" : "Reimposta la password"}
           </h1>
-          <p className="text-sm text-text-400 mt-1">
-            {mode === "login" ? "Accedi al tuo assistente del corso" : mode === "register" ? "Inizia con il tuo assistente del corso" : "Ti invieremo un link di reimpostazione"}
+          <p className="text-sm text-grey-500 mt-1 text-center">
+            {mode === "login" ? "Bentornato nel corso AI per Psicologi" : mode === "register" ? "Inizia il tuo percorso" : "Ti invieremo un link via email"}
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-bg-100 border border-bg-300 rounded-sage-xl shadow-sage p-6">
+        <div className="bg-white border border-grey-200 rounded-2xl shadow-sm p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
+
             {mode === "register" && (
               <div>
-                <label className="block text-sm font-medium text-text-200 mb-1">Nome completo</label>
+                <label className="block text-xs font-semibold text-grey-700 mb-1.5">Nome completo</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Mario Rossi"
                   required
-                  className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
+                  className={inputClass}
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-text-200 mb-1">Indirizzo email</label>
+              <label className="block text-xs font-semibold text-grey-700 mb-1.5">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-3 py-2 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
+                className={inputClass}
               />
             </div>
 
             {mode !== "forgot" && (
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-text-200">Password</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-grey-700">Password</label>
                   {mode === "login" && (
-                    <button type="button" onClick={() => { setMode("forgot"); reset(); }} className="text-xs text-primary-700 hover:text-primary-800 font-medium">
+                    <button
+                      type="button"
+                      onClick={() => { setMode("forgot"); reset(); }}
+                      className="text-xs text-primary-300 hover:text-primary-400 font-medium transition-colors"
+                    >
                       Password dimenticata?
                     </button>
                   )}
@@ -114,12 +120,13 @@ export function AuthPage({ onAuth }: Props) {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={mode === "register" ? "Almeno 6 caratteri" : "••••••••"}
                     required
-                    className="w-full px-3 py-2 pr-10 text-sm border border-bg-300 rounded-sage bg-bg-100 text-text-100 placeholder-text-500 focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 transition-colors"
+                    className={inputClass + " pr-10"}
                   />
                   <button
                     type="button"
+                    tabIndex={-1}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-400 hover:text-text-200 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-grey-400 hover:text-grey-700 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -128,18 +135,12 @@ export function AuthPage({ onAuth }: Props) {
             )}
 
             {error && (
-              <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-sage text-sm text-red-700">
-                <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
+              <div className="px-3.5 py-2.5 bg-red-100 border border-red-200 rounded-lg text-sm text-red-700">
                 {error}
               </div>
             )}
             {info && (
-              <div className="flex items-start gap-2 px-3 py-2.5 bg-sage-50 border border-sage-200 rounded-sage text-sm text-sage-800">
-                <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              <div className="px-3.5 py-2.5 bg-green-100 border border-green-200 rounded-lg text-sm text-green-700">
                 {info}
               </div>
             )}
@@ -147,33 +148,40 @@ export function AuthPage({ onAuth }: Props) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-primary-700 hover:bg-primary-800 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-sage transition-colors mt-1"
+              className="w-full flex items-center justify-center gap-2 bg-grey-950 hover:bg-grey-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold py-2.5 px-4 rounded-lg transition-colors mt-1"
             >
-              {loading && (
-                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>
-              )}
-              {loading ? "Caricamento..." : mode === "login" ? "Accedi" : mode === "register" ? "Crea account" : "Invia link di reimpostazione"}
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading
+                ? "Caricamento..."
+                : mode === "login"
+                ? "Accedi"
+                : mode === "register"
+                ? "Crea account"
+                : "Invia link"}
             </button>
           </form>
         </div>
 
         {/* Mode switcher */}
-        <p className="text-center text-sm text-text-400 mt-5">
+        <p className="text-center text-sm text-grey-500 mt-5">
           {mode === "login" && (
             <>Non hai un account?{" "}
-              <button onClick={() => { setMode("register"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Registrati</button>
+              <button onClick={() => { setMode("register"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+                Registrati
+              </button>
             </>
           )}
           {mode === "register" && (
             <>Hai già un account?{" "}
-              <button onClick={() => { setMode("login"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Accedi</button>
+              <button onClick={() => { setMode("login"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+                Accedi
+              </button>
             </>
           )}
           {mode === "forgot" && (
-            <button onClick={() => { setMode("login"); reset(); }} className="text-primary-700 hover:text-primary-800 font-semibold">Torna al login</button>
+            <button onClick={() => { setMode("login"); reset(); }} className="text-grey-950 font-semibold hover:underline">
+              ← Torna al login
+            </button>
           )}
         </p>
       </div>
