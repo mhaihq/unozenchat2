@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, Mic, MicOff, Loader2, Sparkles } from "lucide-react";
+import { Send, Mic, MicOff, Loader2 } from "lucide-react";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 
@@ -64,7 +64,8 @@ ${LEVEL_INSTRUCTIONS[level]}
 
 Regole:
 - Rispondi sempre in italiano
-- NON usare markdown: niente asterischi, hashtag, backtick. Solo testo normale.
+- NON usare markdown: niente asterischi, hashtag, backtick. Solo testo normale e punteggiatura ordinaria.
+- Rispondi in modo completo ma conciso, senza titoli o sezioni
 - Se la domanda è fuori tema, riporta gentilmente il focus sull'argomento
 - Non inventare: se non sei sicuro, dillo chiaramente`;
 }
@@ -111,7 +112,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
           Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "gpt-4o",
           stream: true,
           messages: [
             { role: "system", content: buildSystemPrompt(lezione, subtopic, level) },
@@ -171,15 +172,12 @@ export function LessonChat({ subtopic, lezione }: Props) {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="bg-surface2 rounded-lg overflow-hidden">
+    <div className="border-t border-[rgba(20,20,20,0.08)] mt-10">
 
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 flex-wrap gap-y-2">
-        <Sparkles className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-        <span className="text-xs font-medium text-muted flex-1 uppercase tracking-[0.08em]">Assistente AI</span>
-
-        {/* Level toggle */}
-        <div className="flex items-center gap-px bg-[rgba(20,20,20,0.06)] rounded-md p-0.5">
+      {/* Section header */}
+      <div className="flex items-center justify-between py-5">
+        <p className="text-2xs uppercase text-faint">Assistente AI</p>
+        <div className="flex items-center gap-px bg-[rgba(20,20,20,0.05)] rounded-md p-0.5">
           {LEVELS.map((l) => (
             <button
               key={l.value}
@@ -198,7 +196,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
 
       {/* Suggested questions — empty state */}
       {!hasMessages && (
-        <div className="px-4 pb-4 flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2 mb-6">
           {subtopic.suggestedQuestions.map((q, i) => (
             <motion.button
               key={i}
@@ -206,7 +204,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
               onClick={() => sendMessage(q)}
-              className="w-full text-left px-3.5 py-2.5 rounded-md border border-[rgba(20,20,20,0.08)] bg-surface text-sm text-muted hover:text-tx hover:border-[rgba(20,20,20,0.16)] transition-all"
+              className="w-full text-left px-4 py-3 rounded-lg border border-[rgba(20,20,20,0.08)] bg-surface hover:border-[rgba(20,20,20,0.18)] hover:bg-surface2 text-sm text-muted hover:text-tx transition-all"
             >
               {q}
             </motion.button>
@@ -216,7 +214,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
 
       {/* Messages */}
       {hasMessages && (
-        <div className="px-4 py-3 space-y-4 max-h-80 overflow-y-auto">
+        <div className="flex flex-col gap-6 mb-6">
           <AnimatePresence initial={false}>
             {messages.map((msg) => (
               <motion.div
@@ -224,18 +222,20 @@ export function LessonChat({ subtopic, lezione }: Props) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.16 }}
-                className={`flex items-start gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+                className={msg.role === "user" ? "flex justify-end" : ""}
               >
-                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-sm leading-relaxed whitespace-pre-wrap ${
-                  msg.role === "user"
-                    ? "bg-accent text-white rounded-br-sm"
-                    : "bg-surface text-tx rounded-bl-sm border border-[rgba(20,20,20,0.08)]"
-                }`}>
-                  {msg.content}
-                  {msg.streaming && (
-                    <span className="inline-block w-0.5 h-3.5 bg-accent ml-0.5 align-middle animate-pulse" />
-                  )}
-                </div>
+                {msg.role === "user" ? (
+                  <div className="max-w-[78%] px-4 py-3 bg-accent text-white rounded-2xl rounded-br-sm text-sm leading-relaxed whitespace-pre-wrap">
+                    {msg.content}
+                  </div>
+                ) : (
+                  <div className="text-base text-tx leading-[1.7] whitespace-pre-wrap">
+                    {msg.content}
+                    {msg.streaming && (
+                      <span className="inline-block w-0.5 h-4 bg-accent ml-0.5 align-middle animate-pulse" />
+                    )}
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -245,13 +245,13 @@ export function LessonChat({ subtopic, lezione }: Props) {
 
       {/* Compact suggestion chips after first message */}
       {hasMessages && (
-        <div className="px-4 pb-3 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 mb-5">
           {subtopic.suggestedQuestions.map((q, i) => (
             <button
               key={i}
               onClick={() => sendMessage(q)}
               disabled={isStreaming}
-              className="text-xs px-3 py-1 rounded-full border border-[rgba(20,20,20,0.08)] bg-surface text-muted hover:text-tx hover:border-[rgba(20,20,20,0.16)] transition-all disabled:opacity-40 truncate max-w-[220px]"
+              className="text-xs px-3 py-1.5 rounded-full border border-[rgba(20,20,20,0.08)] text-muted hover:text-tx hover:border-[rgba(20,20,20,0.18)] transition-all disabled:opacity-40 truncate max-w-[240px]"
             >
               {q}
             </button>
@@ -259,8 +259,8 @@ export function LessonChat({ subtopic, lezione }: Props) {
         </div>
       )}
 
-      {/* Input row */}
-      <div className="px-3 py-2.5 border-t border-[rgba(20,20,20,0.06)] flex items-end gap-2">
+      {/* Input */}
+      <div className="flex items-end gap-2 pb-2">
         <textarea
           ref={inputRef}
           value={input}
@@ -268,34 +268,34 @@ export function LessonChat({ subtopic, lezione }: Props) {
           onKeyDown={handleKeyDown}
           placeholder="Scrivi una domanda su questo argomento..."
           rows={1}
-          className="flex-1 resize-none px-3 py-2 text-sm bg-surface rounded-md border border-[rgba(20,20,20,0.08)] focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 text-tx placeholder-faint transition-all max-h-28 leading-relaxed"
+          className="flex-1 resize-none px-4 py-3 text-sm bg-surface2 rounded-xl border border-[rgba(20,20,20,0.06)] focus:outline-none focus:border-[rgba(20,20,20,0.2)] text-tx placeholder-faint transition-all max-h-32 leading-relaxed"
           style={{ overflowY: "auto" }}
         />
         <button
           onClick={toggleVoice}
           title={voiceState === "recording" ? "Ferma registrazione" : "Registra messaggio vocale"}
-          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+          className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
             voiceState === "recording"
               ? "bg-red-500 text-white"
               : voiceState === "transcribing"
               ? "bg-surface2 text-faint"
-              : "bg-surface border border-[rgba(20,20,20,0.08)] text-muted hover:text-tx"
+              : "bg-surface2 border border-[rgba(20,20,20,0.08)] text-muted hover:text-tx"
           }`}
         >
           {voiceState === "transcribing" ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : voiceState === "recording" ? (
-            <MicOff className="w-3.5 h-3.5" />
+            <MicOff className="w-4 h-4" />
           ) : (
-            <Mic className="w-3.5 h-3.5" />
+            <Mic className="w-4 h-4" />
           )}
         </button>
         <button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || isStreaming}
-          className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 hover:bg-accent-deep disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 hover:bg-accent-deep disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          {isStreaming ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+          {isStreaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </button>
       </div>
     </div>
