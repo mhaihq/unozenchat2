@@ -234,6 +234,18 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
                 transition={{ duration: 0.18 }}
                 className="px-10 sm:px-14 pt-10 pb-12 w-full"
               >
+                {/* Video embed — shown once per lesson, on first subtopic */}
+                {activeLezione.videoId && activeLezione.subtopics[0].id === activeSubtopic.id && (
+                  <div className="mb-10 rounded-xl overflow-hidden border border-[rgba(20,20,20,0.08)] shadow-card" style={{ aspectRatio: "16/9" }}>
+                    <iframe
+                      src={`https://player.vimeo.com/video/${activeLezione.videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
+                      className="w-full h-full"
+                      allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                      title={`Lezione ${activeLezione.number} — ${activeLezione.title}`}
+                    />
+                  </div>
+                )}
+
                 {/* Eyebrow */}
                 <p className="text-2xs uppercase text-faint mb-3">
                   Lezione {activeLezione.number} · {activeLezione.title}

@@ -10,6 +10,7 @@ export interface Lezione {
   number: number;
   title: string;
   focus: string;
+  videoId?: string;
   subtopics: Subtopic[];
 }
 
@@ -19,6 +20,7 @@ export const CORSO: Lezione[] = [
     number: 1,
     title: "Le Fondamenta",
     focus: "Come funziona l'AI, mercato, etica e rischi. Focus: Teoria, mercato, regolamentazione e privacy.",
+    videoId: "1186228117",
     subtopics: [
       {
         id: "l1-s1",
