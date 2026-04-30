@@ -7,6 +7,7 @@ import { AdminPanel } from "./components/AdminPanel";
 import { AuthPage } from "./components/AuthPage";
 import { Dashboard } from "./components/Dashboard";
 import { CourseView } from "./components/CourseView";
+import { HomePage } from "./components/HomePage";
 import { supabase } from "./lib/supabase";
 import { createSession, sendMessage, fetchDocuments } from "./lib/api";
 import type { AppView, Document, Message } from "./lib/types";
@@ -171,7 +172,10 @@ export default function App() {
     );
   }
 
-  if (!user) return <AuthPage onAuth={() => {}} />;
+  if (!user) {
+    if (view === "auth") return <AuthPage onAuth={() => setView("dashboard")} />;
+    return <HomePage onLogin={() => setView("auth")} />;
+  }
 
   if (view === "admin") {
     if (!adminAuthed) return <AdminLogin onSuccess={() => setAdminAuthed(true)} onBack={() => setView("dashboard")} />;
