@@ -35,7 +35,7 @@ const ORB_TRANSITION: Record<VoiceState, object> = {
 };
 
 export function VoiceModal({ isOpen, onClose, systemPrompt }: Props) {
-  const { state, assistantTranscript, userTranscript, connect, disconnect } = useRealtimeVoice();
+  const { state, connect, disconnect } = useRealtimeVoice();
 
   useEffect(() => {
     if (isOpen) {
@@ -107,31 +107,7 @@ export function VoiceModal({ isOpen, onClose, systemPrompt }: Props) {
               </div>
 
               {/* Status */}
-              <div className="text-center space-y-3">
-                <p className="text-sm font-medium text-muted">{STATUS[state]}</p>
-
-                {/* User transcript */}
-                {userTranscript && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-xs text-faint italic px-4"
-                  >
-                    "{userTranscript}"
-                  </motion.p>
-                )}
-
-                {/* Assistant transcript */}
-                {assistantTranscript && (
-                  <motion.p
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-sm text-tx leading-relaxed px-2"
-                  >
-                    {assistantTranscript}
-                  </motion.p>
-                )}
-              </div>
+              <p className="text-sm font-medium text-muted text-center">{STATUS[state]}</p>
 
               {/* Stop button */}
               <button
