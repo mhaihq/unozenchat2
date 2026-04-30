@@ -20,6 +20,7 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
   const [activeSubtopic, setActiveSubtopic] = useState<Subtopic>(CORSO[0].subtopics[0]);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mediaTab, setMediaTab] = useState<"video" | "presentation">("video");
 
   function toggleCompleted(id: string) {
     setCompleted((prev) => {
@@ -234,15 +235,47 @@ export function CourseView({ displayName, userAvatar, onAdmin, onSignOut, onBack
                 transition={{ duration: 0.18 }}
                 className="px-10 sm:px-14 pt-10 pb-12 w-full"
               >
-                {/* Video embed — shown once per lesson, on first subtopic */}
-                {activeLezione.videoId && activeLezione.subtopics[0].id === activeSubtopic.id && (
-                  <div className="mb-10 rounded-xl overflow-hidden border border-[rgba(20,20,20,0.08)] shadow-card" style={{ aspectRatio: "16/9" }}>
-                    <iframe
-                      src={`https://player.vimeo.com/video/${activeLezione.videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
-                      className="w-full h-full"
-                      allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
-                      title={`Lezione ${activeLezione.number} — ${activeLezione.title}`}
-                    />
+                {/* Media block — shown once per lesson, on first subtopic */}
+                {(activeLezione.videoId || activeLezione.presentationUrl) && activeLezione.subtopics[0].id === activeSubtopic.id && (
+                  <div className="mb-10">
+                    {/* Toggle */}
+                    {activeLezione.videoId && activeLezione.presentationUrl && (
+                      <div className="flex items-center gap-px bg-surface2 rounded-lg p-0.5 w-fit mb-4">
+                        {(["video", "presentation"] as const).map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setMediaTab(tab)}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all capitalize ${
+                              mediaTab === tab
+                                ? "bg-surface text-tx shadow-sm"
+                                : "text-muted hover:text-tx"
+                            }`}
+                          >
+                            {tab === "video" ? "Video" : "Presentazione"}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Embed */}
+                    <div className="rounded-xl overflow-hidden border border-[rgba(20,20,20,0.08)] shadow-card" style={{ aspectRatio: "16/9" }}>
+                      {(mediaTab === "video" || !activeLezione.presentationUrl) && activeLezione.videoId && (
+                        <iframe
+                          src={`https://player.vimeo.com/video/${activeLezione.videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
+                          className="w-full h-full"
+                          allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                          title={`Lezione ${activeLezione.number} — ${activeLezione.title}`}
+                        />
+                      )}
+                      {(mediaTab === "presentation" || !activeLezione.videoId) && activeLezione.presentationUrl && (
+                        <iframe
+                          src={activeLezione.presentationUrl}
+                          className="w-full h-full"
+                          allow="fullscreen"
+                          title={`Presentazione Lezione ${activeLezione.number}`}
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
 
