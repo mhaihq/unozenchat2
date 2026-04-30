@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, Mic, MicOff, Loader2, AudioLines } from "lucide-react";
+import { CORSO } from "../lib/courseData";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 import { VoiceModal } from "./VoiceModal";
@@ -69,6 +70,32 @@ Regole:
 - Rispondi in modo completo ma conciso, senza titoli o sezioni
 - Se la domanda è fuori tema, riporta gentilmente il focus sull'argomento
 - Non inventare: se non sei sicuro, dillo chiaramente`;
+}
+
+function buildVoiceSystemPrompt(level: Level): string {
+  const courseContent = CORSO.map((lezione) =>
+    `Lezione ${lezione.number}: ${lezione.title}\n` +
+    lezione.subtopics.map((s) =>
+      `  - ${s.title}: ${s.bullets.join(" | ")}`
+    ).join("\n")
+  ).join("\n\n");
+
+  return `Sei un assistente vocale per il corso "AI per Psicologi". Parli in italiano, in modo naturale e conversazionale, come se fossi un tutor esperto che risponde a voce.
+
+Il corso copre i seguenti contenuti — usali come unica fonte di conoscenza per rispondere alle domande:
+
+${courseContent}
+
+Livello dello studente:
+${LEVEL_INSTRUCTIONS[level]}
+
+Regole:
+- Parla sempre in italiano
+- Rispondi in modo naturale e conversazionale, come in una vera conversazione vocale
+- Non usare elenchi, titoli, o markdown — solo frasi complete
+- Basa le risposte esclusivamente sui contenuti del corso riportati sopra
+- Se una domanda va oltre i contenuti del corso, dillo chiaramente e ricondùci al materiale
+- Sii conciso: le risposte vocali devono essere brevi e chiare`;
 }
 
 export function LessonChat({ subtopic, lezione }: Props) {
@@ -316,7 +343,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
       <VoiceModal
         isOpen={voiceOpen}
         onClose={() => setVoiceOpen(false)}
-        systemPrompt={buildSystemPrompt(lezione, subtopic, level)}
+        systemPrompt={buildVoiceSystemPrompt(level)}
       />
     </div>
   );
