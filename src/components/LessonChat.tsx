@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, Mic, MicOff, Loader2 } from "lucide-react";
+import { Send, Mic, MicOff, Loader2, AudioLines } from "lucide-react";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
+import { VoiceModal } from "./VoiceModal";
 
 type Level = "beginner" | "intermediate" | "advanced";
 
@@ -75,6 +76,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [level, setLevel] = useState<Level>("intermediate");
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -296,6 +298,13 @@ export function LessonChat({ subtopic, lezione }: Props) {
           )}
         </button>
         <button
+          onClick={() => setVoiceOpen(true)}
+          title="Conversazione vocale in tempo reale"
+          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-surface2 border border-[rgba(20,20,20,0.08)] text-muted hover:text-tx transition-all"
+        >
+          <AudioLines className="w-4 h-4" />
+        </button>
+        <button
           onClick={() => sendMessage(input)}
           disabled={!input.trim() || isStreaming}
           className="w-10 h-10 rounded-full bg-accent text-white flex items-center justify-center flex-shrink-0 hover:bg-accent-deep disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
@@ -303,6 +312,12 @@ export function LessonChat({ subtopic, lezione }: Props) {
           {isStreaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
         </button>
       </div>
+
+      <VoiceModal
+        isOpen={voiceOpen}
+        onClose={() => setVoiceOpen(false)}
+        systemPrompt={buildSystemPrompt(lezione, subtopic, level)}
+      />
     </div>
   );
 }
