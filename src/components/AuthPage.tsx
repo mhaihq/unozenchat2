@@ -1,53 +1,47 @@
 import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-
-const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
+import { Loader2, Mail } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { isEmailAllowed } from "../lib/api";
 
-type AuthMode = "login" | "register" | "forgot";
+const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
+const LIME = "#C8E976";
+const LIME_D = "#A8D14F";
+const BG = "#F2EEE3";
+const BORDER = "rgba(26,26,26,0.10)";
+const TEXT = "#1A1A1A";
+const MUTED = "#3A3A3A";
+const FAINT = "#7A7A7A";
 
 interface Props {
   onAuth: () => void;
 }
 
 export function AuthPage({ onAuth }: Props) {
-  const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
 
-  function reset() { setError(""); setInfo(""); }
+  // Listen for when the user comes back from the magic link
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_IN") onAuth();
+  });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    reset();
+    setError("");
     setLoading(true);
     try {
-      if (mode === "login") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        onAuth();
-      } else if (mode === "register") {
-        if (!name.trim()) throw new Error("Inserisci il tuo nome.");
-        if (password.length < 6) throw new Error("La password deve contenere almeno 6 caratteri.");
-        const allowed = await isEmailAllowed(email);
-        if (!allowed) throw new Error("Questa email non è autorizzata. Contatta l'organizzatore del corso.");
-        const { error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() } } });
-        if (error) throw error;
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
-        onAuth();
-      } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) throw error;
-        setInfo("Controlla la tua email per il link di reimpostazione password.");
-        setEmail("");
-      }
+      const trimmed = email.trim().toLowerCase();
+      const allowed = await isEmailAllowed(trimmed);
+      if (!allowed) throw new Error("Questa email non è autorizzata. Contatta l'organizzatore del corso.");
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email: trimmed,
+        options: { shouldCreateUser: true },
+      });
+      if (error) throw error;
+      setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Qualcosa è andato storto");
     } finally {
@@ -55,137 +49,100 @@ export function AuthPage({ onAuth }: Props) {
     }
   }
 
-  const inputClass = "w-full px-3.5 py-2.5 text-sm border border-[rgba(20,20,20,0.12)] rounded-md bg-white text-tx placeholder-faint focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20 transition-all";
-
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4 font-sans">
-      <div className="w-full max-w-[380px]">
+    <div className="min-h-screen flex items-center justify-center px-5 font-sans" style={{ background: BG }}>
+      <div className="w-full max-w-[400px]">
 
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <img src={LOGO} alt="AI per Psicologi" className="h-10 w-auto mb-5 object-contain" />
-          <h1 className="font-serif text-2xl font-normal tracking-tight text-tx">
-            {mode === "login" ? "Accedi" : mode === "register" ? "Crea un account" : "Reimposta la password"}
+        <div className="flex flex-col items-center mb-10">
+          <img src={LOGO} alt="AI per Psicologi" className="h-9 w-auto mb-6 object-contain" />
+          <h1 className="font-serif text-3xl font-normal tracking-tight" style={{ color: TEXT, letterSpacing: "-0.02em" }}>
+            {sent ? "Controlla la email" : "Accedi al corso"}
           </h1>
-          <p className="text-sm text-muted mt-1.5 text-center">
-            {mode === "login" ? "Bentornato nel corso AI per Psicologi" : mode === "register" ? "Inizia il tuo percorso" : "Ti invieremo un link via email"}
+          <p className="text-sm mt-2 text-center" style={{ color: MUTED, lineHeight: 1.6 }}>
+            {sent
+              ? `Abbiamo inviato un link di accesso a ${email}. Clicca il link per entrare.`
+              : "Inserisci la tua email. Ti mandiamo un link di accesso — nessuna password."}
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-surface border border-[rgba(20,20,20,0.08)] rounded-xl shadow-card p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 16, padding: "32px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
 
-            {mode === "register" && (
+          {sent ? (
+            /* Sent state */
+            <div className="flex flex-col items-center gap-5 text-center">
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: LIME, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Mail style={{ width: 24, height: 24, color: TEXT }} />
+              </div>
               <div>
-                <label className="block text-xs font-medium text-muted mb-1.5">Nome completo</label>
+                <p className="text-sm font-medium" style={{ color: TEXT, marginBottom: 6 }}>Link inviato!</p>
+                <p className="text-sm" style={{ color: MUTED, lineHeight: 1.6 }}>
+                  Controlla anche la cartella spam se non lo vedi entro un minuto.
+                </p>
+              </div>
+              <button
+                onClick={() => { setSent(false); setEmail(""); setError(""); }}
+                className="text-sm underline transition-colors"
+                style={{ color: FAINT }}
+                onMouseEnter={e => (e.currentTarget.style.color = TEXT)}
+                onMouseLeave={e => (e.currentTarget.style.color = FAINT)}
+              >
+                Usa un'altra email
+              </button>
+            </div>
+          ) : (
+            /* Email form */
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-medium mb-1.5" style={{ color: MUTED }}>Email</label>
                 <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Mario Rossi"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@esempio.com"
                   required
-                  className={inputClass}
+                  autoFocus
+                  style={{
+                    width: "100%", padding: "10px 14px", fontSize: 14,
+                    border: `1px solid ${BORDER}`, borderRadius: 8,
+                    background: BG, color: TEXT, outline: "none",
+                    transition: "border-color 0.15s",
+                  }}
+                  onFocus={e => (e.currentTarget.style.borderColor = "rgba(26,26,26,0.35)")}
+                  onBlur={e => (e.currentTarget.style.borderColor = BORDER)}
                 />
               </div>
-            )}
 
-            <div>
-              <label className="block text-xs font-medium text-muted mb-1.5">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className={inputClass}
-              />
-            </div>
-
-            {mode !== "forgot" && (
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-medium text-muted">Password</label>
-                  {mode === "login" && (
-                    <button
-                      type="button"
-                      onClick={() => { setMode("forgot"); reset(); }}
-                      className="text-xs text-accent hover:text-accent-deep font-medium transition-colors"
-                    >
-                      Password dimenticata?
-                    </button>
-                  )}
+              {error && (
+                <div style={{ padding: "10px 14px", background: "#fff5f5", border: "1px solid #fecaca", borderRadius: 8, fontSize: 13, color: "#b91c1c" }}>
+                  {error}
                 </div>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={mode === "register" ? "Almeno 6 caratteri" : "••••••••"}
-                    required
-                    className={inputClass + " pr-10"}
-                  />
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-faint hover:text-muted transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
 
-            {error && (
-              <div className="px-3.5 py-2.5 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                {error}
-              </div>
-            )}
-            {info && (
-              <div className="px-3.5 py-2.5 bg-accent-soft border border-accent/20 rounded-md text-sm text-accent-deep">
-                {info}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-deep disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium py-2.5 px-4 rounded-md transition-colors mt-1"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading
-                ? "Caricamento..."
-                : mode === "login"
-                ? "Accedi"
-                : mode === "register"
-                ? "Crea account"
-                : "Invia link"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading || !email.trim()}
+                style={{
+                  width: "100%", padding: "12px", borderRadius: 999,
+                  border: "none", cursor: loading || !email.trim() ? "not-allowed" : "pointer",
+                  background: loading || !email.trim() ? "rgba(200,233,118,0.5)" : LIME,
+                  color: TEXT, fontSize: 14, fontWeight: 600,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={e => { if (!loading && email.trim()) e.currentTarget.style.background = LIME_D; }}
+                onMouseLeave={e => { if (!loading && email.trim()) e.currentTarget.style.background = LIME; }}
+              >
+                {loading && <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />}
+                {loading ? "Invio in corso…" : "Invia link di accesso"}
+              </button>
+            </form>
+          )}
         </div>
 
-        {/* Mode switcher */}
-        <p className="text-center text-sm text-muted mt-5">
-          {mode === "login" && (
-            <>Non hai un account?{" "}
-              <button onClick={() => { setMode("register"); reset(); }} className="text-tx font-medium hover:underline">
-                Registrati
-              </button>
-            </>
-          )}
-          {mode === "register" && (
-            <>Hai già un account?{" "}
-              <button onClick={() => { setMode("login"); reset(); }} className="text-tx font-medium hover:underline">
-                Accedi
-              </button>
-            </>
-          )}
-          {mode === "forgot" && (
-            <button onClick={() => { setMode("login"); reset(); }} className="text-tx font-medium hover:underline">
-              ← Torna al login
-            </button>
-          )}
+        <p className="text-center text-xs mt-6" style={{ color: FAINT }}>
+          Accesso riservato ai partecipanti del corso · <a href="mailto:info@unozen.it" style={{ color: FAINT, textDecoration: "underline" }}>info@unozen.it</a>
         </p>
       </div>
     </div>
