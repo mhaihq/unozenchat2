@@ -5,6 +5,7 @@ import { CORSO } from "../lib/courseData";
 import type { Lezione, Subtopic } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 import { VoiceModal } from "./VoiceModal";
+import { EDGE_FUNCTION_URL } from "../lib/supabase";
 
 type Level = "beginner" | "intermediate" | "advanced";
 
@@ -133,20 +134,20 @@ export function LessonChat({ subtopic, lezione }: Props) {
 
     try {
       const history = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await fetch(`${EDGE_FUNCTION_URL}/lesson-chat`, {
         method: "POST",
         signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
-          model: "gpt-5.4-mini",
-          stream: true,
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: buildSystemPrompt(lezione, subtopic, level) },
             ...history,
           ],
+          lessonNumber: lezione.number,
           max_completion_tokens: 1024,
           temperature: 0.7,
         }),

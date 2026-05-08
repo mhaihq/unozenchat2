@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { EDGE_FUNCTION_URL } from "../lib/supabase";
 
 export type VoiceState = "idle" | "connecting" | "listening" | "speaking" | "error";
 
@@ -10,6 +11,23 @@ interface UseRealtimeVoiceOptions {
 
 const WS_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
 const SAMPLE_RATE = 24000;
+
+async function mintEphemeralToken(systemPrompt: string): Promise<string> {
+  const res = await fetch(`${EDGE_FUNCTION_URL}/realtime-token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ instructions: systemPrompt, voice: "alloy" }),
+  });
+  if (!res.ok) throw new Error(`Failed to mint realtime token: ${await res.text()}`);
+  const data = await res.json();
+  // OpenAI returns { client_secret: { value, expires_at }, ... }
+  const token = data?.client_secret?.value;
+  if (!token) throw new Error("No client_secret returned from /realtime-token");
+  return token;
+}
 
 function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
   const buffer = new ArrayBuffer(float32Array.length * 2);
@@ -90,11 +108,18 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     setAssistantTranscript("");
     setUserTranscript("");
 
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    let ephemeralToken: string;
+    try {
+      ephemeralToken = await mintEphemeralToken(systemPrompt);
+    } catch (err) {
+      console.error(err);
+      setVoiceState("error");
+      return;
+    }
 
     const ws = new WebSocket(WS_URL, [
       "realtime",
-      `openai-insecure-api-key.${apiKey}`,
+      `openai-insecure-api-key.${ephemeralToken}`,
       "openai-beta.realtime-v1",
     ]);
     wsRef.current = ws;

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { EDGE_FUNCTION_URL } from "../lib/supabase";
 
 export type RecordingState = "idle" | "recording" | "transcribing" | "error";
 
@@ -27,9 +28,9 @@ export function useVoiceRecorder({ onTranscript, onError }: UseVoiceRecorderOpti
           const formData = new FormData();
           formData.append("file", blob, `audio.${mimeType.split("/")[1]}`);
           formData.append("model", "whisper-1");
-          const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+          const res = await fetch(`${EDGE_FUNCTION_URL}/transcribe`, {
             method: "POST",
-            headers: { Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}` },
+            headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
             body: formData,
           });
           if (!res.ok) throw new Error(await res.text());
