@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "motion/react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { CORSO } from "../lib/courseData";
 
 const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
@@ -64,33 +64,12 @@ const SectionLabel = ({ n }: { n: string }) => (
   <div style={{ fontSize: 11, color: GREEN, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14, fontFamily: "monospace" }}>{n}</div>
 );
 
-/* ── Hero video — scroll-driven scale (0.5 → 1), origin top-right, like Relume Header143 ── */
+/* ── Hero video — full-width below hero ── */
 function HeroVideo() {
-  const ref = useRef<HTMLDivElement>(null);
-  // Track this element entering the viewport: starts when video top hits bottom, ends when video top hits top.
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start start"] });
-  const rawScale = useTransform(scrollYProgress, [0, 1], [0.5, 1]);
-  const scale = useSpring(rawScale, { stiffness: 90, damping: 24 });
-
   return (
-    <div ref={ref} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "flex-start" }}>
-      <motion.div
-        style={{ scale, transformOrigin: "top right", width: "100%" }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.3 }}>
-        <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
-          <div style={{ background: SURFACE2, padding: "10px 16px", display: "flex", alignItems: "center", gap: 10, borderBottom: `1px solid ${BORDER}` }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              {["#ff5f57","#febc2e","#28c840"].map(c => <div key={c} style={{ width: 11, height: 11, borderRadius: "50%", background: c }} />)}
-            </div>
-            <div style={{ flex: 1, background: "rgba(255,255,255,0.8)", borderRadius: 6, padding: "4px 12px", fontSize: 11, color: MUTED, textAlign: "center", border: `1px solid ${BORDER}` }}>
-              unozen.ai/corso
-            </div>
-          </div>
-          {/* @ts-ignore */}
-          <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
-        </div>
-      </motion.div>
+    <div style={{ position: "relative", borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
+      {/* @ts-ignore */}
+      <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
     </div>
   );
 }
@@ -314,38 +293,40 @@ export function HomePage({ onLogin }: Props) {
               Spiegata semplice.
             </motion.h1>
 
-            {/* Right: description → buttons → video */}
+            {/* Right: description + buttons */}
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.18 }}
               className="flex flex-col gap-6 md:gap-8">
-              <div>
-                <p style={{ fontSize: "clamp(14px,1.8vw,16px)", color: MUTED, lineHeight: 1.65, marginBottom: 20 }}>
-                  Un corso on-demand con un AI tutor che risponde ai tuoi dubbi.<br className="hidden sm:block" />
-                  Esercitazioni vocali interattive e community privata.<br className="hidden sm:block" />
-                  Imparare l'AI <em>usando</em> l'AI.
-                </p>
-                <div className="flex flex-wrap gap-3 items-center">
-                  <button onClick={onLogin}
-                    style={{ background: LIME, color: TEXT, border: `1px solid ${TEXT}`, borderRadius: 999, padding: "11px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 8 }}
-                    onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
-                    Inizia il corso <span>→</span>
-                  </button>
-                  <button onClick={onLogin}
-                    style={{ background: "transparent", color: TEXT, border: `1px solid ${TEXT}`, borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 500, cursor: "pointer", transition: "background 0.15s" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(26,26,26,0.06)")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                    Vedi il programma
-                  </button>
-                  <div className="flex items-baseline gap-1.5">
-                    <span style={{ fontSize: 12, textDecoration: "line-through", color: FAINT, fontFamily: "monospace" }}>€420</span>
-                    <span className="font-serif" style={{ fontSize: 20, color: TEXT, lineHeight: 1, fontWeight: 500 }}>€297</span>
-                  </div>
+              <p style={{ fontSize: "clamp(14px,1.8vw,16px)", color: MUTED, lineHeight: 1.65, marginBottom: 20 }}>
+                Un corso on-demand con un AI tutor che risponde ai tuoi dubbi.<br className="hidden sm:block" />
+                Esercitazioni vocali interattive e community privata.<br className="hidden sm:block" />
+                Imparare l'AI <em>usando</em> l'AI.
+              </p>
+              <div className="flex flex-wrap gap-3 items-center">
+                <button onClick={onLogin}
+                  style={{ background: LIME, color: TEXT, border: `1px solid ${TEXT}`, borderRadius: 999, padding: "11px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 8 }}
+                  onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
+                  Inizia il corso <span>→</span>
+                </button>
+                <button onClick={onLogin}
+                  style={{ background: "transparent", color: TEXT, border: `1px solid ${TEXT}`, borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 500, cursor: "pointer", transition: "background 0.15s" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(26,26,26,0.06)")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  Vedi il programma
+                </button>
+                <div className="flex items-baseline gap-1.5">
+                  <span style={{ fontSize: 12, textDecoration: "line-through", color: FAINT, fontFamily: "monospace" }}>€420</span>
+                  <span className="font-serif" style={{ fontSize: 20, color: TEXT, lineHeight: 1, fontWeight: 500 }}>€297</span>
                 </div>
-                <p style={{ fontSize: 11, color: FAINT, marginTop: 10 }}>Conforme GDPR · Dati in Europa · Anonimizzazione automatica</p>
               </div>
-              <HeroVideo />
+              <p style={{ fontSize: 11, color: FAINT, marginTop: -8 }}>Conforme GDPR · Dati in Europa · Anonimizzazione automatica</p>
             </motion.div>
 
           </div>
+        </div>
+
+        {/* Video full-width below hero columns */}
+        <div className="mx-auto px-5 md:px-10 pb-10 md:pb-14" style={{ maxWidth: 1280 }}>
+          <HeroVideo />
         </div>
       </header>
 
