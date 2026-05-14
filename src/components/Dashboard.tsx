@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Settings, LogOut, Lock } from "lucide-react";
+import { CORSO } from "../lib/courseData";
+import { fetchMyEnrollment } from "../lib/api";
+import type { Enrollment } from "../lib/types";
 
 const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
-import { CORSO } from "../lib/courseData";
 
 interface Props {
   displayName: string;
@@ -15,6 +18,14 @@ interface Props {
 
 export function Dashboard({ displayName, email, userAvatar, onOpenCourse, onAdmin, onSignOut }: Props) {
   const initials = displayName.slice(0, 2).toUpperCase();
+  const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
+
+  useEffect(() => {
+    fetchMyEnrollment().then(setEnrollment).catch(() => {});
+  }, []);
+
+  const courseName = enrollment?.cohort?.course?.title ?? "AI per Psicologi";
+  const cohortName = enrollment?.cohort?.name ?? null;
 
   return (
     <div className="min-h-screen bg-bg font-sans">
@@ -69,9 +80,11 @@ export function Dashboard({ displayName, email, userAvatar, onOpenCourse, onAdmi
           <div className="px-7 pt-7 pb-5 border-b border-[rgba(20,20,20,0.06)]">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-2">Corso disponibile</p>
+                <p className="text-2xs uppercase tracking-[0.1em] text-faint mb-2">
+                  {cohortName ? `${cohortName}` : "Corso disponibile"}
+                </p>
                 <h2 className="font-serif text-xl font-normal tracking-tight text-tx leading-snug">
-                  AI per Psicologi
+                  {courseName}
                 </h2>
                 <p className="text-sm text-muted mt-1">
                   {CORSO.length} lezioni · {CORSO.flatMap(l => l.subtopics).length} argomenti

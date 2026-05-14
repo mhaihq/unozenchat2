@@ -180,9 +180,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // POST /lesson-chat - Streaming chat for the per-lesson assistant.
-    // If lessonNumber is provided AND chunks exist for that lesson, we ground the answer in the transcript.
+    // Supports cohort-scoped RAG (cohortId + lessonNumber) and global lesson RAG (lessonNumber only).
     if (path === "/lesson-chat" && req.method === "POST") {
-      const { messages, model, temperature, max_completion_tokens, lessonNumber } = await req.json();
+      const { messages, model, temperature, max_completion_tokens, lessonNumber, cohortId } = await req.json();
 
       if (!Array.isArray(messages) || messages.length === 0) {
         return new Response(JSON.stringify({ error: "messages array is required" }), {
@@ -198,12 +198,30 @@ Deno.serve(async (req: Request) => {
         if (lastUser?.content) {
           try {
             const queryEmbedding = await getEmbedding(lastUser.content);
-            const { data: chunks } = await supabase.rpc("match_document_chunks_for_lesson", {
-              query_embedding: queryEmbedding,
-              target_lesson_number: lessonNumber,
-              match_count: 6,
-              similarity_threshold: 0.3,
-            });
+
+            // Prefer cohort-scoped chunks; fall back to global lesson chunks
+            let chunks: { content: string }[] | null = null;
+
+            if (cohortId) {
+              const { data } = await supabase.rpc("match_chunks_for_cohort_lesson", {
+                query_embedding: queryEmbedding,
+                p_cohort_id: cohortId,
+                p_lesson_number: lessonNumber,
+                match_count: 6,
+                similarity_threshold: 0.3,
+              });
+              if (data && data.length > 0) chunks = data;
+            }
+
+            if (!chunks || chunks.length === 0) {
+              const { data } = await supabase.rpc("match_document_chunks_for_lesson", {
+                query_embedding: queryEmbedding,
+                target_lesson_number: lessonNumber,
+                match_count: 6,
+                similarity_threshold: 0.3,
+              });
+              if (data && data.length > 0) chunks = data;
+            }
 
             if (chunks && chunks.length > 0) {
               const context = chunks.map((c: { content: string }) => c.content).join("\n\n---\n\n");

@@ -1,5 +1,5 @@
 import { supabase, EDGE_FUNCTION_URL } from "./supabase";
-import type { Document, Message } from "./types";
+import type { Document, Message, Course, Cohort, Lesson, Subtopic, Enrollment, Progress } from "./types";
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -162,5 +162,155 @@ export async function updateAdminPassword(newPassword: string): Promise<void> {
     .update({ value: hashHex })
     .eq("key", "admin_password_hash");
 
+  if (error) throw new Error(error.message);
+}
+
+// ─── LMS ──────────────────────────────────────────────────────────────────────
+
+export async function fetchCourses(): Promise<Course[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("id, slug, title, description, type, is_active")
+    .eq("is_active", true)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function fetchCohorts(courseId: string): Promise<Cohort[]> {
+  const { data, error } = await supabase
+    .from("cohorts")
+    .select("id, course_id, name, starts_at, ends_at, is_active")
+    .eq("course_id", courseId)
+    .eq("is_active", true)
+    .order("starts_at");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+// Fetch all lessons + subtopics for a course, optionally merging cohort-specific
+// video overrides when cohortId is provided.
+export async function fetchLessons(courseId: string, cohortId?: string): Promise<Lesson[]> {
+  const { data: lessonsRaw, error: le } = await supabase
+    .from("lessons")
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .eq("course_id", courseId)
+    .order("sort_order");
+  if (le) throw new Error(le.message);
+
+  const { data: subtopicsRaw, error: se } = await supabase
+    .from("subtopics")
+    .select("id, lesson_id, title, bullets, suggested_questions, sort_order")
+    .in("lesson_id", (lessonsRaw ?? []).map((l) => l.id))
+    .order("sort_order");
+  if (se) throw new Error(se.message);
+
+  // Fetch cohort overrides if applicable
+  let overrides: Record<string, { video_id: string | null; presentation_url: string | null; document_id: string | null }> = {};
+  if (cohortId) {
+    const { data: cl } = await supabase
+      .from("cohort_lessons")
+      .select("lesson_id, video_id, presentation_url, document_id")
+      .eq("cohort_id", cohortId);
+    for (const row of cl ?? []) {
+      overrides[row.lesson_id] = { video_id: row.video_id, presentation_url: row.presentation_url, document_id: row.document_id };
+    }
+  }
+
+  const subtopicsByLesson: Record<string, Subtopic[]> = {};
+  for (const s of subtopicsRaw ?? []) {
+    if (!subtopicsByLesson[s.lesson_id]) subtopicsByLesson[s.lesson_id] = [];
+    subtopicsByLesson[s.lesson_id].push(s as Subtopic);
+  }
+
+  return (lessonsRaw ?? []).map((l) => {
+    const override = overrides[l.id];
+    return {
+      ...l,
+      subtopics: subtopicsByLesson[l.id] ?? [],
+      video_id: override?.video_id ?? l.default_video_id,
+      presentation_url: override?.presentation_url ?? l.default_presentation_url,
+      cohort_document_id: override?.document_id ?? null,
+    } as Lesson;
+  });
+}
+
+// Returns the active enrollment for the current user (if any).
+export async function fetchMyEnrollment(): Promise<Enrollment | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data, error } = await supabase
+    .from("enrollments")
+    .select("id, user_id, cohort_id, enrolled_at, cohort:cohorts(id, course_id, name, starts_at, ends_at, is_active, course:courses(id, slug, title, description, type, is_active))")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data as Enrollment | null;
+}
+
+export async function fetchProgress(userId: string): Promise<Progress[]> {
+  const { data, error } = await supabase
+    .from("progress")
+    .select("subtopic_id, completed_at")
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function markSubtopicComplete(subtopicId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("progress")
+    .upsert({ user_id: user.id, subtopic_id: subtopicId }, { onConflict: "user_id,subtopic_id" });
+  if (error) throw new Error(error.message);
+}
+
+export async function unmarkSubtopicComplete(subtopicId: string): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await supabase
+    .from("progress")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("subtopic_id", subtopicId);
+  if (error) throw new Error(error.message);
+}
+
+// Admin: enroll a user in a cohort by email
+export async function enrollUserByEmail(email: string, cohortId: string): Promise<void> {
+  // Look up the user id via allowed_emails (they must already have an account)
+  const { data: authData, error: authErr } = await supabase
+    .from("allowed_emails")
+    .select("id")
+    .eq("email", email.toLowerCase().trim())
+    .maybeSingle();
+  if (authErr || !authData) throw new Error("Email not found in allowed list");
+
+  // Use service-role via edge function for cross-table user lookup — for now insert
+  // enrollment directly; admin must have RLS bypass (service role) in production.
+  const { error } = await supabase
+    .from("enrollments")
+    .insert({ cohort_id: cohortId });
+  if (error) throw new Error(error.message);
+}
+
+// Admin: create a cohort
+export async function createCohort(courseId: string, name: string, startsAt?: string, endsAt?: string): Promise<Cohort> {
+  const { data, error } = await supabase
+    .from("cohorts")
+    .insert({ course_id: courseId, name, starts_at: startsAt ?? null, ends_at: endsAt ?? null })
+    .select("id, course_id, name, starts_at, ends_at, is_active")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Cohort;
+}
+
+// Admin: set/update the live recording for a cohort lesson
+export async function setCohortLessonVideo(cohortId: string, lessonId: string, videoId: string): Promise<void> {
+  const { error } = await supabase
+    .from("cohort_lessons")
+    .upsert({ cohort_id: cohortId, lesson_id: lessonId, video_id: videoId }, { onConflict: "cohort_id,lesson_id" });
   if (error) throw new Error(error.message);
 }

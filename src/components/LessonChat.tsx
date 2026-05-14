@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, Mic, MicOff, Loader2, AudioLines } from "lucide-react";
+import type { Lesson as Lezione, Subtopic } from "../lib/types";
 import { CORSO } from "../lib/courseData";
-import type { Lezione, Subtopic } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 import { VoiceModal } from "./VoiceModal";
 import { EDGE_FUNCTION_URL } from "../lib/supabase";
@@ -19,6 +19,7 @@ interface Message {
 interface Props {
   subtopic: Subtopic;
   lezione: Lezione;
+  cohortId?: string;
 }
 
 const LEVELS: { value: Level; label: string }[] = [
@@ -99,7 +100,7 @@ Regole:
 - Sii conciso: le risposte vocali devono essere brevi e chiare`;
 }
 
-export function LessonChat({ subtopic, lezione }: Props) {
+export function LessonChat({ subtopic, lezione, cohortId }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -148,6 +149,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
             ...history,
           ],
           lessonNumber: lezione.number,
+          cohortId: cohortId ?? null,
           max_completion_tokens: 1024,
           temperature: 0.7,
         }),
@@ -232,7 +234,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
       {/* Suggested questions — empty state */}
       {!hasMessages && (
         <div className="flex flex-col gap-2 mb-6">
-          {subtopic.suggestedQuestions.map((q, i) => (
+          {subtopic.suggested_questions.map((q, i) => (
             <motion.button
               key={i}
               initial={{ opacity: 0, y: 4 }}
@@ -281,7 +283,7 @@ export function LessonChat({ subtopic, lezione }: Props) {
       {/* Compact suggestion chips after first message */}
       {hasMessages && (
         <div className="flex flex-wrap gap-1.5 mb-5">
-          {subtopic.suggestedQuestions.map((q, i) => (
+          {subtopic.suggested_questions.map((q, i) => (
             <button
               key={i}
               onClick={() => sendMessage(q)}
