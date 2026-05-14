@@ -157,6 +157,107 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
         </motion.div>
       </div>
 
+      {/* Recensioni */}
+      <section style={{ background: SURFACE2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>Recensioni</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginTop: 10 }}>
+                Cosa dicono i <em style={{ fontStyle: "italic", fontWeight: 400 }}>partecipanti.</em>
+              </h2>
+            </div>
+            <p className="font-serif" style={{ fontSize: 14, fontStyle: "italic", color: FAINT }}>Recensioni vere, non inventate.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { tag: "Esperienza", text: "Ho imparato cose che da sola avrei fatto molta fatica a mettere insieme. La cosa più bella è che mi ha acceso ancora di più la curiosità. Si sente la competenza e la chiarezza con cui riesce a portare temi complessi.", author: "Iliana Sardi", role: "Psicologa" },
+              { tag: "Praticità", text: "Ho apprezzato particolarmente il taglio pratico, la qualità dei materiali e la guida attenta e competente di Matteo — uno strumento concretamente spendibile nel lavoro quotidiano.", author: "Daniela Iacopini", role: "Professionista" },
+              { tag: "Qualità", text: "Corso molto valido per merito del bravissimo Matteo, che con passione, capacità professionale e dedizione mi ha permesso di familiarizzare con l'intelligenza artificiale. Esperienza ottima sotto qualsiasi punto di vista.", author: "Patrizia Stella", role: "Psicologa" },
+              { tag: "Consigliato", text: "Ho apprezzato la chiarezza espositiva, l'approccio pratico e interattivo senza rinunciare alla qualità del contenuto. Ho consigliato caldamente il corso ai colleghi del gruppo di lavoro dell'Ordine.", author: "Monica Viganò", role: "Psicologa, Ordine" },
+              { tag: "Metodo", text: "Usavo ChatGPT, Claude, Perplexity, Gemini e Notebook LM — ma nella mia mente si era creato il caos. Matteo mi ha aiutato a mettere ordine. Finalmente so cosa uso e perché.", author: "Delia Duccoli", role: "Psicologa e Docente universitaria" },
+              { tag: "Accessibilità", text: "Spiegazioni chiare e accessibili, strumenti concreti per sperimentare l'AI in modo più ampio e consapevole. Molto utile poter accedere alle registrazioni rispettando i propri ritmi.", author: "Barbara", role: "Studio Pizzagalli" },
+              { tag: "Per principianti", text: "Mi avvicinavo al tema dell'AI per la prima volta. Nonostante questo sono riuscito a seguire bene e ho appreso molte cose, sia teoriche che pratiche. Le prime prove che ho fatto sono state soddisfacenti.", author: "Damiano Suzzi", role: "Professionista" },
+              { tag: "Consigliato", text: "Il corso è stato davvero interessante e utile. Si vede che Matteo ha tanta confidenza con le varie AI — e riesce a trasmetterla. Ho già consigliato il corso a diversi colleghi.", author: "Lucia Canestrari", role: "Psicologa" },
+              { tag: "Praticità", text: "Ringrazio moltissimo Matteo per la disponibilità! Apprezzo i video dove mostra nel concreto come si fanno le cose. Il corso l'ho trovato molto utile — vuole solo che tu voglia davvero imparare.", author: "Simona Sartori", role: "Professionista" },
+            ].map((r, i) => (
+              <motion.div key={i}
+                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ duration: 0.4, delay: (i % 3) * 0.07 }}
+                style={{ background: WHITE, borderRadius: 14, padding: "24px 22px", border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: NAVY, fontFamily: "monospace", background: SURFACE2, borderRadius: 999, padding: "3px 10px", display: "inline-block", marginBottom: 16, width: "fit-content" }}>{r.tag}</span>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.75, flex: 1, marginBottom: 20 }}>"{r.text}"</p>
+                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{r.author}</div>
+                  <div style={{ fontSize: 12, color: FAINT }}>{r.role}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Chi siamo */}
+      <section style={{ background: WHITE, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+
+            {/* Photos — staggered stack */}
+            <div style={{ position: "relative", height: 420 }} className="hidden md:block">
+              <motion.div
+                initial={{ opacity: 0, y: -12, rotate: -2 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+                style={{ position: "absolute", top: 0, left: "10%", width: 220, borderRadius: 4, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.13)", border: `3px solid ${WHITE}`, transform: "rotate(-3deg)" }}>
+                <img
+                  src="https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6935ed01e1dd66f3db9dad0d_Matteo%20Grassi.jpg"
+                  alt="Alessandro Lombardo"
+                  style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", filter: "grayscale(20%)" }}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 12, rotate: 2 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.12 }}
+                style={{ position: "absolute", bottom: 0, right: "5%", width: 220, borderRadius: 4, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.13)", border: `3px solid ${WHITE}`, transform: "rotate(2.5deg)" }}>
+                <img
+                  src="https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6935ed01e1dd66f3db9dad0d_Matteo%20Grassi.jpg"
+                  alt="Matteo Grassi"
+                  style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", filter: "grayscale(20%)" }}
+                />
+              </motion.div>
+            </div>
+
+            {/* Text */}
+            <motion.div initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", display: "inline-block", border: `1px solid ${BORDER}`, borderRadius: 999, padding: "4px 12px", marginBottom: 24 }}>Chi siamo</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 36 }}>
+                La migliore piattaforma<br />di formazione AI per<br /><em style={{ fontStyle: "italic", fontWeight: 400 }}>professionisti.</em>
+              </h2>
+
+              <div className="flex flex-col gap-6">
+                {[
+                  {
+                    name: "Alessandro Lombardo",
+                    bio: "Co-fondatore Unozen. Psicologo e Psicoterapeuta. Ho fondato e diretto, fino a maggio 2026, la più grande comunità di apprendimento per psicologi in Italia. Lavoro come psicoterapeuta a Torino.",
+                  },
+                  {
+                    name: "Matteo Grassi",
+                    bio: "Co-fondatore Unozen. Laureato in Psicologia. Sviluppo progetti AI nella sanità digitale. Vivo tra Irlanda e Italia dove implemento soluzioni con enti governativi e privati.",
+                  },
+                ].map((person) => (
+                  <div key={person.name} className="flex gap-4">
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: LIME, flexShrink: 0, marginTop: 5 }} />
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: NAVY, marginBottom: 6 }}>{person.name}</div>
+                      <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7 }}>{person.bio}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer style={{ borderTop: `1px solid ${BORDER}`, background: BG }} className="px-5 md:px-10 py-8">
         <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 4 }}>
