@@ -217,12 +217,18 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
           ))}
         </div>
 
-        {/* CTA */}
-        <button onClick={onCourseOndemand}
-          style={{ fontSize: 13, fontWeight: 600, padding: "8px 20px", borderRadius: 999, border: "none", cursor: "pointer", background: LIME, color: NAVY, transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 6 }}
-          onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
-          Scopri i corsi <span>→</span>
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={onLogin}
+            style={{ fontSize: 13, fontWeight: 500, padding: "8px 16px", borderRadius: 999, border: `1px solid ${BORDER}`, cursor: "pointer", background: "transparent", color: MUTED, transition: "background 0.15s" }}
+            onMouseEnter={e => (e.currentTarget.style.background = SURFACE2)} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+            Accedi
+          </button>
+          <a href="#corsi"
+            style={{ fontSize: 13, fontWeight: 600, padding: "8px 20px", borderRadius: 999, border: "none", cursor: "pointer", background: LIME, color: NAVY, transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 6, textDecoration: "none" }}
+            onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
+            Scopri i corsi <span>→</span>
+          </a>
+        </div>
       </nav>
 
       {/* ── HERO ── */}
