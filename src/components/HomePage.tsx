@@ -55,6 +55,16 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
         </motion.p>
       </div>
 
+      {/* Hero video */}
+      <div className="mx-auto px-5 md:px-10 pb-10 md:pb-14" style={{ maxWidth: 960 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
+          style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
+          {/* @ts-ignore */}
+          <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
+        </motion.div>
+      </div>
+
       {/* Two course cards */}
       <div className="mx-auto px-5 md:px-10 pb-20 md:pb-28" style={{ maxWidth: 960 }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
