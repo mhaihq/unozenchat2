@@ -1,4 +1,5 @@
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
 const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 
@@ -11,6 +12,178 @@ const FAINT   = "#7A7A7A";
 const BORDER  = "rgba(26,26,26,0.10)";
 const WHITE   = "#ffffff";
 const SURFACE2 = "#EAE5D6";
+
+const CHAT_MSGS = [
+  { role: "user", text: "Qual è la differenza tra ChatGPT e un modello fine-tuned?" },
+  { role: "ai",   text: "ChatGPT è un modello base addestrato su dati generici. Un modello fine-tuned viene addestrato su dati specifici — come le note cliniche di uno studio. Il risultato è un modello che \"parla il tuo linguaggio\"." },
+  { role: "user", text: "E quando mi conviene usare l'uno piuttosto che l'altro?" },
+  { role: "ai",   text: "Per comunicazioni con pazienti, ChatGPT con un buon prompt spesso basta. Per applicazioni strutturate — triage automatico, screening — il fine-tuning dà risultati notevolmente migliori." },
+];
+
+// Timings (ms): how long each message is revealed before next appears
+const MSG_DELAYS = [600, 2200, 4800, 6800];
+// After last message, wait this long then switch to voice
+const VOICE_DELAY = 9600;
+// Total loop duration
+const LOOP_MS = 14000;
+
+function TutorDemo() {
+  const [phase, setPhase] = useState<"chat" | "voice">("chat");
+  const [visibleCount, setVisibleCount] = useState(0);
+  const timerRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const startLoop = () => {
+    timerRefs.current.forEach(clearTimeout);
+    timerRefs.current = [];
+    setPhase("chat");
+    setVisibleCount(0);
+
+    MSG_DELAYS.forEach((delay, i) => {
+      timerRefs.current.push(setTimeout(() => setVisibleCount(i + 1), delay));
+    });
+    timerRefs.current.push(setTimeout(() => setPhase("voice"), VOICE_DELAY));
+    timerRefs.current.push(setTimeout(startLoop, LOOP_MS));
+  };
+
+  useEffect(() => {
+    startLoop();
+    return () => timerRefs.current.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div style={{ position: "relative", height: 420 }}>
+      <AnimatePresence mode="wait">
+        {phase === "chat" ? (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.45 }}
+            style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+
+            {/* Chat header */}
+            <div style={{ background: "rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: LIME, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>AI Tutor</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: LIME, display: "inline-block" }} />
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Online · Risponde subito</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div style={{ padding: "20px 20px 8px", display: "flex", flexDirection: "column", gap: 14, flex: 1, overflowY: "auto" }}>
+              <AnimatePresence>
+                {CHAT_MSGS.slice(0, visibleCount).map((msg, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                    <div style={{
+                      maxWidth: "82%", padding: "10px 14px",
+                      borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                      background: msg.role === "user" ? LIME : "rgba(255,255,255,0.09)",
+                      color: msg.role === "user" ? NAVY : "rgba(255,255,255,0.85)",
+                      fontSize: 13, lineHeight: 1.6,
+                    }}>
+                      {msg.text}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {/* Typing indicator while AI message is pending */}
+              <AnimatePresence>
+                {(visibleCount === 0 || (visibleCount % 2 === 1 && visibleCount < CHAT_MSGS.length)) && (
+                  <motion.div
+                    key="typing"
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ display: "flex", justifyContent: "flex-start" }}>
+                    <div style={{ background: "rgba(255,255,255,0.09)", borderRadius: "14px 14px 14px 4px", padding: "12px 16px", display: "flex", gap: 5, alignItems: "center" }}>
+                      {[0, 1, 2].map(d => (
+                        <motion.span key={d} style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.4)", display: "inline-block" }}
+                          animate={{ y: [0, -5, 0] }} transition={{ duration: 0.7, repeat: Infinity, delay: d * 0.15 }} />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Input bar */}
+            <div style={{ margin: "8px 20px 20px", background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, border: "1px solid rgba(255,255,255,0.08)", flexShrink: 0 }}>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", flex: 1 }}>Fai una domanda sul corso…</span>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: LIME, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              </div>
+            </div>
+          </motion.div>
+
+        ) : (
+          <motion.div
+            key="voice"
+            initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+
+            {/* Orb */}
+            <div style={{ position: "relative", width: 160, height: 160, marginBottom: 28 }}>
+              {/* Outermost pulse ring */}
+              <motion.div
+                style={{ position: "absolute", inset: -20, borderRadius: "50%", border: `1px solid ${LIME}`, opacity: 0 }}
+                animate={{ scale: [1, 1.35], opacity: [0.18, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut" }} />
+              {/* Middle pulse ring */}
+              <motion.div
+                style={{ position: "absolute", inset: -8, borderRadius: "50%", border: `1px solid ${LIME}`, opacity: 0 }}
+                animate={{ scale: [1, 1.2], opacity: [0.28, 0] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeOut", delay: 0.3 }} />
+              {/* Orb core */}
+              <motion.div
+                style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `radial-gradient(circle at 38% 36%, rgba(200,233,118,0.95) 0%, rgba(168,209,79,0.85) 45%, rgba(26,26,26,0.9) 100%)`, boxShadow: `0 0 60px rgba(200,233,118,0.35), 0 0 120px rgba(200,233,118,0.15)` }}
+                animate={{ scale: [1, 1.04, 0.98, 1.03, 1] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}>
+                {/* Sound wave bars inside orb */}
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+                  {[0.6, 1, 0.75, 1, 0.5, 0.85, 0.6].map((amp, i) => (
+                    <motion.div key={i}
+                      style={{ width: 3, borderRadius: 4, background: NAVY, opacity: 0.6 }}
+                      animate={{ height: [8 * amp, 28 * amp, 12 * amp, 22 * amp, 8 * amp] }}
+                      transition={{ duration: 0.9 + i * 0.08, repeat: Infinity, ease: "easeInOut", delay: i * 0.12 }} />
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Label */}
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", marginBottom: 6 }}>Modalità vocale attiva</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <motion.span style={{ width: 6, height: 6, borderRadius: "50%", background: LIME, display: "inline-block" }}
+                  animate={{ opacity: [1, 0.2, 1] }} transition={{ duration: 1.2, repeat: Infinity }} />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>In ascolto…</span>
+              </div>
+            </div>
+
+            {/* Transcript snippet */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
+              style={{ marginTop: 28, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 18px", maxWidth: 300, textAlign: "center" }}>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontStyle: "italic", lineHeight: 1.6 }}>
+                "Puoi spiegarmi come usare il fine-tuning per le note cliniche?"
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface Props {
   onLogin: () => void;
@@ -192,49 +365,9 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
               </div>
             </motion.div>
 
-            {/* Right — mock chat */}
+            {/* Right — animated chat → voice orb */}
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.12 }}>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 20, overflow: "hidden" }}>
-                {/* Chat header */}
-                <div style={{ background: "rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: LIME, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/></svg>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>AI Tutor</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Online · Risponde subito</div>
-                  </div>
-                </div>
-
-                {/* Messages */}
-                <div style={{ padding: "20px 20px 8px", display: "flex", flexDirection: "column", gap: 14, minHeight: 280 }}>
-                  {[
-                    { role: "user", text: "Qual è la differenza tra ChatGPT e un modello fine-tuned?" },
-                    { role: "ai", text: "Ottima domanda. Come abbiamo visto nel Modulo 1, ChatGPT è un modello base addestrato su dati generici. Un modello fine-tuned viene invece ulteriormente addestrato su dati specifici — come le note cliniche di uno studio o il protocollo di un servizio. Il risultato è un modello che \"parla il tuo linguaggio\"." },
-                    { role: "user", text: "E quando mi conviene usare l'uno piuttosto che l'altro?" },
-                    { role: "ai", text: "Dipende dal caso d'uso. Per redazione di referti o comunicazioni con pazienti, ChatGPT con un buon prompt spesso basta. Per applicazioni più strutturate — come un triage automatico o un sistema di screening — il fine-tuning dà risultati notevolmente migliori." },
-                  ].map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                      <div style={{
-                        maxWidth: "82%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                        background: msg.role === "user" ? LIME : "rgba(255,255,255,0.08)",
-                        color: msg.role === "user" ? NAVY : "rgba(255,255,255,0.85)",
-                        fontSize: 13, lineHeight: 1.6,
-                      }}>
-                        {msg.text}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Input bar */}
-                <div style={{ margin: "8px 20px 20px", background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", flex: 1 }}>Fai una domanda sul corso…</span>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: LIME, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                  </div>
-                </div>
-              </div>
+              <TutorDemo />
             </motion.div>
 
           </div>
