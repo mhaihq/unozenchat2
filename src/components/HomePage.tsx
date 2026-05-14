@@ -157,6 +157,90 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
         </motion.div>
       </div>
 
+      {/* AI Tutor section */}
+      <section style={{ background: NAVY, position: "relative", overflow: "hidden" }} className="py-16 md:py-24">
+        <div style={{ position: "absolute", top: "40%", left: "30%", width: 700, height: 500, background: "radial-gradient(ellipse, rgba(200,233,118,0.10) 0%, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div className="relative mx-auto px-5 md:px-10" style={{ maxWidth: 960, zIndex: 1 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
+
+            {/* Left — text */}
+            <motion.div initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: LIME, fontFamily: "monospace", display: "inline-block", marginBottom: 20 }}>AI Tutor — incluso per sempre</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,3rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
+                Un tutor che conosce<br />il corso <em style={{ fontStyle: "italic", color: LIME }}>a memoria.</em>
+              </h2>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", lineHeight: 1.75, marginBottom: 36 }}>
+                Non è un chatbot generico. È addestrato sui contenuti del corso — video, trascrizioni, materiali — e risponde ai tuoi dubbi specifici in italiano, 24 ore su 24, per sempre.
+              </p>
+              <div className="flex flex-col gap-0">
+                {[
+                  ["Chat e voce", "Scrivi o parla direttamente — risponde in modo naturale"],
+                  ["Calibrato sul tuo livello", "Principiante, intermedio o esperto: adatta il linguaggio"],
+                  ["Risponde 24/7", "Nessuna attesa. Nessun orario di ricevimento"],
+                  ["Incluso per sempre", "Non scade con il corso — continua ad usarlo anche dopo"],
+                ].map(([title, desc], i) => (
+                  <div key={i} className="flex gap-4 py-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <div style={{ width: 20, height: 20, borderRadius: "50%", background: LIME, flexShrink: 0, marginTop: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#1A1A1A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 2 }}>{title}</div>
+                      <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)" }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Right — mock chat */}
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.12 }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 20, overflow: "hidden" }}>
+                {/* Chat header */}
+                <div style={{ background: "rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "14px 20px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: LIME, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/></svg>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>AI Tutor</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Online · Risponde subito</div>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div style={{ padding: "20px 20px 8px", display: "flex", flexDirection: "column", gap: 14, minHeight: 280 }}>
+                  {[
+                    { role: "user", text: "Qual è la differenza tra ChatGPT e un modello fine-tuned?" },
+                    { role: "ai", text: "Ottima domanda. Come abbiamo visto nel Modulo 1, ChatGPT è un modello base addestrato su dati generici. Un modello fine-tuned viene invece ulteriormente addestrato su dati specifici — come le note cliniche di uno studio o il protocollo di un servizio. Il risultato è un modello che \"parla il tuo linguaggio\"." },
+                    { role: "user", text: "E quando mi conviene usare l'uno piuttosto che l'altro?" },
+                    { role: "ai", text: "Dipende dal caso d'uso. Per redazione di referti o comunicazioni con pazienti, ChatGPT con un buon prompt spesso basta. Per applicazioni più strutturate — come un triage automatico o un sistema di screening — il fine-tuning dà risultati notevolmente migliori." },
+                  ].map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div style={{
+                        maxWidth: "82%", padding: "10px 14px", borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                        background: msg.role === "user" ? LIME : "rgba(255,255,255,0.08)",
+                        color: msg.role === "user" ? NAVY : "rgba(255,255,255,0.85)",
+                        fontSize: 13, lineHeight: 1.6,
+                      }}>
+                        {msg.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input bar */}
+                <div style={{ margin: "8px 20px 20px", background: "rgba(255,255,255,0.06)", borderRadius: 12, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.2)", flex: 1 }}>Fai una domanda sul corso…</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: LIME, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Recensioni */}
       <section style={{ background: SURFACE2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
         <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
