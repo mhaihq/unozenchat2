@@ -9,7 +9,9 @@ import { AuthPage } from "./components/AuthPage";
 import { Dashboard } from "./components/Dashboard";
 import { CourseView } from "./components/CourseView";
 import { HomePage } from "./components/HomePage";
-import { supabase } from "./lib/supabase";
+import { CoursePageOndemand } from "./components/CoursePageOndemand";
+import { CoursePageLive } from "./components/CoursePageLive";
+import { supabase, EDGE_FUNCTION_URL } from "./lib/supabase";
 import { createSession, sendMessage, fetchDocuments } from "./lib/api";
 import type { AppView, Document, Message } from "./lib/types";
 import type { User } from "@supabase/supabase-js";
@@ -81,6 +83,24 @@ export default function App() {
   const [view, setView] = useState<AppView>("dashboard");
   const [adminAuthed, setAdminAuthed] = useState(false);
   const { result: checkoutResult, clear: clearCheckout } = useCheckoutResult();
+
+  async function handleBuy(priceId: string, courseId: string, cohortId?: string) {
+    // If user is not logged in, send to auth first — we'll redirect after
+    if (!user) { setView("auth"); return; }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const res = await fetch(`${EDGE_FUNCTION_URL.replace("/course-chat", "")}/stripe-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ priceId, courseId, cohortId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+    }
+  }
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -176,7 +196,26 @@ export default function App() {
 
   if (!user) {
     if (view === "auth") return <AuthPage onAuth={() => setView("dashboard")} />;
-    return <HomePage onLogin={() => setView("auth")} />;
+    if (view === "course-page-ondemand") return (
+      <CoursePageOndemand
+        onLogin={() => setView("auth")}
+        onBack={() => setView("home")}
+        onBuy={handleBuy}
+      />
+    );
+    if (view === "course-page-live") return (
+      <CoursePageLive
+        onLogin={() => setView("auth")}
+        onBack={() => setView("home")}
+      />
+    );
+    return (
+      <HomePage
+        onLogin={() => setView("auth")}
+        onCourseOndemand={() => setView("course-page-ondemand")}
+        onCourseLive={() => setView("course-page-live")}
+      />
+    );
   }
 
   if (view === "admin") {
