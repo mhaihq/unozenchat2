@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { RotateCcw, Settings, LogOut, BookOpen, FileText, ChevronDown, SendHorizonal, Mic, MicOff, Loader2 } from "lucide-react"; // BookOpen used in unreachable legacy code below
+import { RotateCcw, Settings, LogOut, BookOpen, FileText, ChevronDown, SendHorizonal, Mic, MicOff, Loader2, X } from "lucide-react"; // BookOpen used in unreachable legacy code below
 import { motion, AnimatePresence } from "motion/react";
 import { useVoiceRecorder } from "./hooks/useVoiceRecorder";
+import { useCheckoutResult } from "./hooks/useCheckoutResult";
 import { AdminLogin } from "./components/AdminLogin";
 import { AdminPanel } from "./components/AdminPanel";
 import { AuthPage } from "./components/AuthPage";
@@ -79,6 +80,7 @@ export default function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [view, setView] = useState<AppView>("dashboard");
   const [adminAuthed, setAdminAuthed] = useState(false);
+  const { result: checkoutResult, clear: clearCheckout } = useCheckoutResult();
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -187,14 +189,36 @@ export default function App() {
 
   if (view === "dashboard") {
     return (
-      <Dashboard
-        displayName={displayName}
-        email={user.email ?? ""}
+      <>
+        {/* Checkout result banner */}
+        <AnimatePresence>
+          {checkoutResult && (
+            <motion.div
+              initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }}
+              className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-3 text-sm font-medium ${
+                checkoutResult === "success"
+                  ? "bg-[#C8E976] text-[#1A1A1A]"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              <span>
+                {checkoutResult === "success"
+                  ? "Pagamento completato. Benvenuto nel corso!"
+                  : "Pagamento annullato. Puoi riprovare quando vuoi."}
+              </span>
+              <button onClick={clearCheckout}><X className="w-4 h-4" /></button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <Dashboard
+          displayName={displayName}
+          email={user.email ?? ""}
         userAvatar={userAvatar}
         onOpenCourse={() => setView("course")}
         onAdmin={() => setView("admin")}
         onSignOut={handleSignOut}
       />
+      </>
     );
   }
 
