@@ -199,10 +199,29 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: "rgba(242,238,227,0.92)", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BORDER}`, height: 64 }}
         className="flex items-center justify-between px-5 md:px-10">
         <img src={LOGO} alt="Unozen" style={{ height: 26, width: "auto", objectFit: "contain" }} />
-        <button onClick={onLogin}
-          style={{ fontSize: 14, fontWeight: 500, padding: "8px 20px", borderRadius: 999, border: "none", cursor: "pointer", background: LIME, color: NAVY, transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 6 }}
+
+        {/* Links — hidden on mobile */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { label: "Corsi", href: "#corsi" },
+            { label: "AI Tutor", href: "#ai-tutor" },
+            { label: "Recensioni", href: "#recensioni" },
+            { label: "Chi siamo", href: "#chi-siamo" },
+          ].map(({ label, href }) => (
+            <a key={href} href={href}
+              style={{ fontSize: 13, fontWeight: 500, color: MUTED, textDecoration: "none", padding: "6px 14px", borderRadius: 999, transition: "background 0.15s, color 0.15s" }}
+              onMouseEnter={e => { e.currentTarget.style.background = SURFACE2; e.currentTarget.style.color = NAVY; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = MUTED; }}>
+              {label}
+            </a>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <button onClick={onCourseOndemand}
+          style={{ fontSize: 13, fontWeight: 600, padding: "8px 20px", borderRadius: 999, border: "none", cursor: "pointer", background: LIME, color: NAVY, transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 6 }}
           onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
-          Accedi <span>→</span>
+          Scopri i corsi <span>→</span>
         </button>
       </nav>
 
@@ -262,7 +281,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       </section>
 
       {/* ── CORSI ── */}
-      <section style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-20">
+      <section id="corsi" style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-20">
         <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
           <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
             className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-10">
@@ -354,7 +373,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       </section>
 
       {/* AI Tutor section */}
-      <section style={{ background: NAVY, position: "relative", overflow: "hidden" }} className="py-16 md:py-24">
+      <section id="ai-tutor" style={{ background: NAVY, position: "relative", overflow: "hidden" }} className="py-16 md:py-24">
         <div style={{ position: "absolute", top: "40%", left: "30%", width: 700, height: 500, background: "radial-gradient(ellipse, rgba(200,233,118,0.10) 0%, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
         <div className="relative mx-auto px-5 md:px-10" style={{ maxWidth: 960, zIndex: 1 }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
@@ -398,7 +417,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       </section>
 
       {/* Recensioni */}
-      <section style={{ background: BG }} className="py-20 md:py-28 overflow-hidden">
+      <section id="recensioni" style={{ background: BG }} className="py-20 md:py-28 overflow-hidden">
         <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 1080 }}>
 
           {/* Header row */}
@@ -485,7 +504,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       </section>
 
       {/* Chi siamo */}
-      <section style={{ background: WHITE, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
+      <section id="chi-siamo" style={{ background: WHITE, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
         <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
 
