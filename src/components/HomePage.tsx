@@ -208,7 +208,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
 
       {/* ── HERO ── */}
       <section style={{ background: BG, borderBottom: `1px solid ${BORDER}` }}>
-        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960, paddingTop: "clamp(6rem,14vw,10rem)", paddingBottom: "clamp(2.5rem,5vw,4rem)", textAlign: "center" }}>
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960, paddingTop: "clamp(6rem,14vw,10rem)", paddingBottom: "clamp(3rem,6vw,5rem)", textAlign: "center" }}>
           <motion.p
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
             style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", marginBottom: 20 }}>
@@ -227,11 +227,36 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             Scegli il formato che fa per te — on-demand al tuo ritmo,<br className="hidden sm:block" />
             o dal vivo con un gruppo ristretto.
           </motion.p>
+
+          {/* Video */}
           <motion.div
             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
-            style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
+            style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}`, marginBottom: 40 }}>
             {/* @ts-ignore */}
             <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
+          </motion.div>
+
+          {/* Stats strip */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.44 }}
+            className="grid grid-cols-1 sm:grid-cols-3"
+            style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${BORDER}`, background: WHITE, boxShadow: "0 2px 20px rgba(0,0,0,0.05)", textAlign: "left" }}>
+            {[
+              { value: "4.9 / 5", label: "Valutazione media", sub: "★★★★★  basata su oltre 200 iscritti" },
+              { value: "200+",    label: "Professionisti formati", sub: "Psicologi, psicoterapeuti, ricercatori" },
+              { value: "100%",    label: "Conforme GDPR", sub: "Dati elaborati in Europa · AI in italiano" },
+            ].map((stat, i) => (
+              <div key={i} style={{
+                padding: "24px 28px",
+                borderRight: i < 2 ? `1px solid ${BORDER}` : "none",
+                borderTop: i > 0 ? `1px solid ${BORDER}` : "none",
+                background: i === 1 ? SURFACE2 : WHITE,
+              }} className={i > 0 ? "sm:border-t-0" : ""}>
+                <div className="font-serif" style={{ fontSize: "clamp(1.5rem,2.5vw,2rem)", fontWeight: 500, color: NAVY, lineHeight: 1, marginBottom: 6 }}>{stat.value}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: NAVY, marginBottom: 4 }}>{stat.label}</div>
+                <div style={{ fontSize: 11, color: FAINT, fontFamily: "monospace", lineHeight: 1.5 }}>{stat.sub}</div>
+              </div>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -325,28 +350,6 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
           </motion.div>
 
           </div>
-        </div>
-      </section>
-
-      {/* Social proof bar */}
-      <section style={{ background: NAVY, borderTop: `1px solid rgba(255,255,255,0.06)`, borderBottom: `1px solid rgba(255,255,255,0.06)` }} className="py-10 md:py-12 overflow-hidden">
-        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
-          <motion.div
-            initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:divide-x"
-            style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
-            {[
-              { value: "4.9 / 5", label: "Valutazione media", sub: "★★★★★  basata su oltre 200 iscritti" },
-              { value: "200+", label: "Professionisti formati", sub: "Psicologi, psicoterapeuti, ricercatori" },
-              { value: "100%", label: "Conforme GDPR", sub: "Dati elaborati in Europa · AI in italiano" },
-            ].map((stat, i) => (
-              <div key={i} style={{ padding: "28px 32px", background: i === 1 ? "rgba(200,233,118,0.06)" : "transparent", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
-                <div className="font-serif" style={{ fontSize: "clamp(1.8rem,3vw,2.4rem)", fontWeight: 500, color: i === 1 ? LIME : "#fff", lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>{stat.label}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.32)", fontFamily: "monospace" }}>{stat.sub}</div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </section>
 
