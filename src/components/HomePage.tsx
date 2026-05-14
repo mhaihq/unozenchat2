@@ -249,8 +249,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             </div>
             <p style={{ fontSize: 13, color: FAINT, fontFamily: "monospace" }}>2 percorsi · stesso programma</p>
           </motion.div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
 
           {/* On-demand card */}
           <motion.div
@@ -325,7 +324,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             </div>
           </motion.div>
 
-        </div>
+          </div>
         </div>
       </section>
 
