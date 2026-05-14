@@ -206,40 +206,50 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
         </button>
       </nav>
 
-      {/* Hero */}
-      <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960, paddingTop: "clamp(6rem,14vw,10rem)", paddingBottom: "clamp(2rem,4vw,3rem)", textAlign: "center" }}>
-        <motion.p
-          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", marginBottom: 20 }}>
-          Unozen.ai — Formazione AI per professionisti
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.06 }}
-          className="font-serif"
-          style={{ fontSize: "clamp(2.4rem,6vw,5rem)", fontWeight: 500, lineHeight: 1.06, letterSpacing: "-0.03em", color: NAVY, marginBottom: 20 }}>
-          Intelligenza <em style={{ fontStyle: "italic", fontWeight: 400 }}>Artificiale.</em><br />
-          Spiegata semplice.
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.18 }}
-          style={{ fontSize: "clamp(15px,2vw,17px)", color: MUTED, lineHeight: 1.65, maxWidth: "52ch", margin: "0 auto" }}>
-          Scegli il formato che fa per te — on-demand al tuo ritmo,<br className="hidden sm:block" />
-          o dal vivo con un gruppo ristretto.
-        </motion.p>
-      </div>
+      {/* ── HERO ── */}
+      <section style={{ background: BG, borderBottom: `1px solid ${BORDER}` }}>
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960, paddingTop: "clamp(6rem,14vw,10rem)", paddingBottom: "clamp(2.5rem,5vw,4rem)", textAlign: "center" }}>
+          <motion.p
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", marginBottom: 20 }}>
+            Unozen.ai — Formazione AI per professionisti
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.06 }}
+            className="font-serif"
+            style={{ fontSize: "clamp(2.4rem,6vw,5rem)", fontWeight: 500, lineHeight: 1.06, letterSpacing: "-0.03em", color: NAVY, marginBottom: 20 }}>
+            Intelligenza <em style={{ fontStyle: "italic", fontWeight: 400 }}>Artificiale.</em><br />
+            Spiegata semplice.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.18 }}
+            style={{ fontSize: "clamp(15px,2vw,17px)", color: MUTED, lineHeight: 1.65, maxWidth: "52ch", margin: "0 auto 36px" }}>
+            Scegli il formato che fa per te — on-demand al tuo ritmo,<br className="hidden sm:block" />
+            o dal vivo con un gruppo ristretto.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
+            style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
+            {/* @ts-ignore */}
+            <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
+          </motion.div>
+        </div>
+      </section>
 
-      {/* Hero video */}
-      <div className="mx-auto px-5 md:px-10 pb-10 md:pb-14" style={{ maxWidth: 960 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.28 }}
-          style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 24px 60px rgba(26,26,26,0.12)", border: `1px solid ${BORDER}` }}>
-          {/* @ts-ignore */}
-          <wistia-player media-id="0obed6jcc6" aspect="1.7777777777777777" style={{ display: "block", width: "100%" }} />
-        </motion.div>
-      </div>
-
-      {/* Two course cards */}
-      <div className="mx-auto px-5 md:px-10 pb-20 md:pb-28" style={{ maxWidth: 960 }}>
+      {/* ── CORSI ── */}
+      <section style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-20">
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
+          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
+            className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-10">
+            <div>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>I nostri corsi</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.6rem,3.5vw,2.4rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.025em", color: NAVY, marginTop: 10 }}>
+                Scegli il tuo <em style={{ fontStyle: "italic", fontWeight: 400 }}>formato.</em>
+              </h2>
+            </div>
+            <p style={{ fontSize: 13, color: FAINT, fontFamily: "monospace" }}>2 percorsi · stesso programma</p>
+          </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
 
           {/* On-demand card */}
@@ -316,8 +326,8 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
           </motion.div>
 
         </div>
-
-      </div>
+        </div>
+      </section>
 
       {/* Social proof bar */}
       <section style={{ background: NAVY, borderTop: `1px solid rgba(255,255,255,0.06)`, borderBottom: `1px solid rgba(255,255,255,0.06)` }} className="py-10 md:py-12 overflow-hidden">
