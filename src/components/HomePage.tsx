@@ -317,18 +317,29 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
 
         </div>
 
-        {/* Social proof strip */}
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.5 }}
-          className="flex flex-wrap items-center justify-center gap-6 mt-10"
-          style={{ fontSize: 13, color: FAINT }}>
-          <span>⭐⭐⭐⭐⭐ &nbsp;4.9/5 — oltre 200 professionisti formati</span>
-          <span style={{ color: BORDER }}>|</span>
-          <span>Conforme GDPR · Dati in Europa</span>
-          <span style={{ color: BORDER }}>|</span>
-          <span>AI tutor in italiano</span>
-        </motion.div>
       </div>
+
+      {/* Social proof bar */}
+      <section style={{ background: NAVY, borderTop: `1px solid rgba(255,255,255,0.06)`, borderBottom: `1px solid rgba(255,255,255,0.06)` }} className="py-10 md:py-12 overflow-hidden">
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-0 sm:divide-x"
+            style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+            {[
+              { value: "4.9 / 5", label: "Valutazione media", sub: "★★★★★  basata su oltre 200 iscritti" },
+              { value: "200+", label: "Professionisti formati", sub: "Psicologi, psicoterapeuti, ricercatori" },
+              { value: "100%", label: "Conforme GDPR", sub: "Dati elaborati in Europa · AI in italiano" },
+            ].map((stat, i) => (
+              <div key={i} style={{ padding: "28px 32px", background: i === 1 ? "rgba(200,233,118,0.06)" : "transparent", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
+                <div className="font-serif" style={{ fontSize: "clamp(1.8rem,3vw,2.4rem)", fontWeight: 500, color: i === 1 ? LIME : "#fff", lineHeight: 1, marginBottom: 8 }}>{stat.value}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.7)", marginBottom: 4 }}>{stat.label}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.32)", fontFamily: "monospace" }}>{stat.sub}</div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
 
       {/* AI Tutor section */}
       <section style={{ background: NAVY, position: "relative", overflow: "hidden" }} className="py-16 md:py-24">
