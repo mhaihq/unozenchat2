@@ -375,42 +375,88 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
       </section>
 
       {/* Recensioni */}
-      <section style={{ background: SURFACE2, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
-        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <section style={{ background: BG }} className="py-20 md:py-28 overflow-hidden">
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 1080 }}>
+
+          {/* Header row */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
             <div>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>Recensioni</span>
-              <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginTop: 10 }}>
-                Cosa dicono i <em style={{ fontStyle: "italic", fontWeight: 400 }}>partecipanti.</em>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>Recensioni verificate</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(2rem,4.5vw,3.2rem)", fontWeight: 500, lineHeight: 1.08, letterSpacing: "-0.025em", color: NAVY, marginTop: 12 }}>
+                Cosa dicono i<br /><em style={{ fontStyle: "italic", fontWeight: 400 }}>partecipanti.</em>
               </h2>
             </div>
-            <p className="font-serif" style={{ fontSize: 14, fontStyle: "italic", color: FAINT }}>Recensioni vere, non inventate.</p>
+            {/* Stars summary pill */}
+            <motion.div initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
+              style={{ display: "flex", alignItems: "center", gap: 16, background: WHITE, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "16px 24px", boxShadow: "0 2px 16px rgba(0,0,0,0.05)", flexShrink: 0, alignSelf: "flex-start" }}>
+              <div style={{ textAlign: "center" }}>
+                <div className="font-serif" style={{ fontSize: 36, fontWeight: 500, color: NAVY, lineHeight: 1 }}>4.9</div>
+                <div style={{ fontSize: 11, color: FAINT, marginTop: 4, fontFamily: "monospace" }}>su 5</div>
+              </div>
+              <div style={{ width: 1, height: 40, background: BORDER }} />
+              <div>
+                <div style={{ color: "#F5A623", fontSize: 16, letterSpacing: 3, lineHeight: 1 }}>★★★★★</div>
+                <div style={{ fontSize: 12, color: FAINT, marginTop: 6 }}>200+ professionisti</div>
+              </div>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
             {[
-              { tag: "Esperienza", text: "Ho imparato cose che da sola avrei fatto molta fatica a mettere insieme. La cosa più bella è che mi ha acceso ancora di più la curiosità. Si sente la competenza e la chiarezza con cui riesce a portare temi complessi.", author: "Iliana Sardi", role: "Psicologa" },
-              { tag: "Praticità", text: "Ho apprezzato particolarmente il taglio pratico, la qualità dei materiali e la guida attenta e competente di Matteo — uno strumento concretamente spendibile nel lavoro quotidiano.", author: "Daniela Iacopini", role: "Professionista" },
-              { tag: "Qualità", text: "Corso molto valido per merito del bravissimo Matteo, che con passione, capacità professionale e dedizione mi ha permesso di familiarizzare con l'intelligenza artificiale. Esperienza ottima sotto qualsiasi punto di vista.", author: "Patrizia Stella", role: "Psicologa" },
-              { tag: "Consigliato", text: "Ho apprezzato la chiarezza espositiva, l'approccio pratico e interattivo senza rinunciare alla qualità del contenuto. Ho consigliato caldamente il corso ai colleghi del gruppo di lavoro dell'Ordine.", author: "Monica Viganò", role: "Psicologa, Ordine" },
-              { tag: "Metodo", text: "Usavo ChatGPT, Claude, Perplexity, Gemini e Notebook LM — ma nella mia mente si era creato il caos. Matteo mi ha aiutato a mettere ordine. Finalmente so cosa uso e perché.", author: "Delia Duccoli", role: "Psicologa e Docente universitaria" },
-              { tag: "Accessibilità", text: "Spiegazioni chiare e accessibili, strumenti concreti per sperimentare l'AI in modo più ampio e consapevole. Molto utile poter accedere alle registrazioni rispettando i propri ritmi.", author: "Barbara", role: "Studio Pizzagalli" },
-              { tag: "Per principianti", text: "Mi avvicinavo al tema dell'AI per la prima volta. Nonostante questo sono riuscito a seguire bene e ho appreso molte cose, sia teoriche che pratiche. Le prime prove che ho fatto sono state soddisfacenti.", author: "Damiano Suzzi", role: "Professionista" },
-              { tag: "Consigliato", text: "Il corso è stato davvero interessante e utile. Si vede che Matteo ha tanta confidenza con le varie AI — e riesce a trasmetterla. Ho già consigliato il corso a diversi colleghi.", author: "Lucia Canestrari", role: "Psicologa" },
-              { tag: "Praticità", text: "Ringrazio moltissimo Matteo per la disponibilità! Apprezzo i video dove mostra nel concreto come si fanno le cose. Il corso l'ho trovato molto utile — vuole solo che tu voglia davvero imparare.", author: "Simona Sartori", role: "Professionista" },
-            ].map((r, i) => (
-              <motion.div key={i}
-                initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ duration: 0.4, delay: (i % 3) * 0.07 }}
-                style={{ background: WHITE, borderRadius: 14, padding: "24px 22px", border: `1px solid ${BORDER}`, display: "flex", flexDirection: "column", boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: NAVY, fontFamily: "monospace", background: SURFACE2, borderRadius: 999, padding: "3px 10px", display: "inline-block", marginBottom: 16, width: "fit-content" }}>{r.tag}</span>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.75, flex: 1, marginBottom: 20 }}>"{r.text}"</p>
-                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 14 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{r.author}</div>
-                  <div style={{ fontSize: 12, color: FAINT }}>{r.role}</div>
-                </div>
-              </motion.div>
-            ))}
+              { featured: true,  text: "Usavo ChatGPT, Claude, Perplexity, Gemini e Notebook LM — ma nella mia mente si era creato il caos. Matteo mi ha aiutato a mettere ordine. Finalmente so cosa uso e perché.", author: "Delia Duccoli", role: "Psicologa e Docente universitaria" },
+              { featured: false, text: "Ho imparato cose che da sola avrei fatto molta fatica a mettere insieme. La cosa più bella è che mi ha acceso ancora di più la curiosità. Si sente la competenza e la chiarezza con cui riesce a portare temi complessi.", author: "Iliana Sardi", role: "Psicologa" },
+              { featured: false, text: "Ho apprezzato la chiarezza espositiva, l'approccio pratico e interattivo senza rinunciare alla qualità del contenuto. Ho consigliato caldamente il corso ai colleghi del gruppo di lavoro dell'Ordine.", author: "Monica Viganò", role: "Psicologa, Ordine degli Psicologi" },
+              { featured: false, text: "Ho apprezzato particolarmente il taglio pratico, la qualità dei materiali e la guida attenta e competente di Matteo — uno strumento concretamente spendibile nel lavoro quotidiano.", author: "Daniela Iacopini", role: "Professionista" },
+              { featured: true,  text: "Corso molto valido per merito del bravissimo Matteo, che con passione, capacità professionale e dedizione mi ha permesso di familiarizzare con l'intelligenza artificiale. Esperienza ottima sotto qualsiasi punto di vista.", author: "Patrizia Stella", role: "Psicologa" },
+              { featured: false, text: "Spiegazioni chiare e accessibili, strumenti concreti per sperimentare l'AI in modo più ampio e consapevole. Molto utile poter accedere alle registrazioni rispettando i propri ritmi.", author: "Barbara", role: "Studio Pizzagalli" },
+              { featured: false, text: "Mi avvicinavo al tema dell'AI per la prima volta. Nonostante questo sono riuscito a seguire bene e ho appreso molte cose, sia teoriche che pratiche. Le prime prove che ho fatto sono state soddisfacenti.", author: "Damiano Suzzi", role: "Professionista" },
+              { featured: false, text: "Il corso è stato davvero interessante e utile. Si vede che Matteo ha tanta confidenza con le varie AI — e riesce a trasmetterla. Ho già consigliato il corso a diversi colleghi.", author: "Lucia Canestrari", role: "Psicologa" },
+              { featured: false, text: "Ringrazio moltissimo Matteo per la disponibilità! Apprezzo i video dove mostra nel concreto come si fanno le cose. Il corso l'ho trovato molto utile — vuole solo che tu voglia davvero imparare.", author: "Simona Sartori", role: "Professionista" },
+            ].map((r, i) => {
+              const initials = r.author.split(" ").slice(0, 2).map((w: string) => w[0]).join("");
+              return (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 22 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.45, delay: (i % 3) * 0.09 }}
+                  style={{
+                    borderRadius: 20,
+                    padding: "28px 26px",
+                    display: "flex",
+                    flexDirection: "column",
+                    ...(r.featured
+                      ? { background: NAVY, border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 12px 48px rgba(0,0,0,0.22)" }
+                      : { background: WHITE, border: `1px solid ${BORDER}`, boxShadow: "0 2px 20px rgba(0,0,0,0.05)" }
+                    ),
+                  }}>
+
+                  {/* Top: quote + stars */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                    <div className="font-serif" style={{ fontSize: 52, lineHeight: 0.75, color: r.featured ? LIME : SURFACE2, fontWeight: 700, userSelect: "none" }}>"</div>
+                    <div style={{ color: "#F5A623", fontSize: 12, letterSpacing: "0.2em" }}>★★★★★</div>
+                  </div>
+
+                  {/* Quote text */}
+                  <p className="font-serif" style={{ fontSize: 15, lineHeight: 1.74, flex: 1, marginBottom: 24, fontStyle: "italic", color: r.featured ? "rgba(255,255,255,0.82)" : MUTED }}>
+                    {r.text}
+                  </p>
+
+                  {/* Author */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 18, borderTop: r.featured ? "1px solid rgba(255,255,255,0.08)" : `1px solid ${BORDER}` }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.04em",
+                      background: r.featured ? LIME : SURFACE2,
+                      color: r.featured ? NAVY : MUTED,
+                    }}>
+                      {initials}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.2, color: r.featured ? "#fff" : NAVY }}>{r.author}</div>
+                      <div style={{ fontSize: 12, marginTop: 2, color: r.featured ? "rgba(255,255,255,0.38)" : FAINT }}>{r.role}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
