@@ -85,8 +85,6 @@ export default function App() {
   const { result: checkoutResult, clear: clearCheckout } = useCheckoutResult();
 
   async function handleBuy(priceId: string, courseId: string, cohortId?: string) {
-    // If user is not logged in, send to auth first — we'll redirect after
-    if (!user) { setView("auth"); return; }
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -97,6 +95,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
+      else console.error("No checkout URL returned", data);
     } catch (err) {
       console.error("Checkout error:", err);
     }

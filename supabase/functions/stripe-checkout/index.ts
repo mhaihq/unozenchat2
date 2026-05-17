@@ -22,18 +22,14 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Authenticate the user via their JWT
     const authHeader = req.headers.get("Authorization") ?? "";
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Try to get logged-in user — guests are allowed, user may be null
     const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: { user }, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { data: { user } } = await userClient.auth.getUser();
 
     const { cohortId, courseId, priceId } = await req.json();
 
@@ -43,59 +39,47 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Check if already enrolled
-    if (cohortId) {
-      const { data: existing } = await supabase
-        .from("enrollments")
-        .select("id")
+    // Create or retrieve Stripe customer (only for logged-in users)
+    let customerId: string | undefined;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("stripe_customers")
+        .select("stripe_customer_id")
         .eq("user_id", user.id)
-        .eq("cohort_id", cohortId)
         .maybeSingle();
-      if (existing) {
-        return new Response(JSON.stringify({ error: "Already enrolled" }), {
-          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+
+      if (profile?.stripe_customer_id) {
+        customerId = profile.stripe_customer_id;
+      } else {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          metadata: { supabase_user_id: user.id },
+        });
+        customerId = customer.id;
+        await supabase.from("stripe_customers").insert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
         });
       }
     }
 
-    // Create or retrieve Stripe customer
-    let customerId: string | undefined;
-    const { data: profile } = await supabase
-      .from("stripe_customers")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (profile?.stripe_customer_id) {
-      customerId = profile.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { supabase_user_id: user.id },
-      });
-      customerId = customer.id;
-      await supabase.from("stripe_customers").insert({
-        user_id: user.id,
-        stripe_customer_id: customerId,
-      });
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
+    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "payment",
       success_url: `${SITE_URL}?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE_URL}?checkout=cancelled`,
       metadata: {
-        user_id: user.id,
+        user_id: user?.id ?? "",
         cohort_id: cohortId ?? "",
         course_id: courseId ?? "",
       },
-      // Automatic tax + EU VAT
       automatic_tax: { enabled: true },
       customer_update: { address: "auto" },
-    });
+    };
+    if (customerId) sessionParams.customer = customerId;
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
