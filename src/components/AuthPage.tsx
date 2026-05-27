@@ -38,7 +38,10 @@ export function AuthPage({ onAuth }: Props) {
 
       const { error } = await supabase.auth.signInWithOtp({
         email: trimmed,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: window.location.origin,
+        },
       });
       if (error) throw error;
       setSent(true);
