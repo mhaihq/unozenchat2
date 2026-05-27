@@ -108,7 +108,6 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         session: {
           type: "realtime",
           instructions: systemPrompt,
-          voice: "alloy",
         },
       }));
 
