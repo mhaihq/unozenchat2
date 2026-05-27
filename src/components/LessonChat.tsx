@@ -349,7 +349,10 @@ export function LessonChat({ subtopic, lezione, cohortId }: Props) {
       <VoiceModal
         isOpen={voiceOpen}
         onClose={() => setVoiceOpen(false)}
-        systemPrompt={buildVoiceSystemPrompt(level)}
+        systemPrompt={buildSystemPrompt(lezione, subtopic, level).replace(
+          "Regole:",
+          "Regole:\n- Parla in modo naturale e conversazionale, come in una vera conversazione vocale — niente elenchi o markdown, solo frasi complete\n- Rispondi in modo conciso (max 3-4 frasi per risposta vocale)\n-"
+        )}
       />
     </div>
   );

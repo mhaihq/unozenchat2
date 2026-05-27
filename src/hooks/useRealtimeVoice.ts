@@ -108,6 +108,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         session: {
           type: "realtime",
           instructions: systemPrompt,
+          turn_detection: { silence_duration_ms: 800 },
         },
       }));
 
@@ -132,8 +133,13 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           }));
         };
 
+        // Connect processor to a silent node — we only need onaudioprocess to fire,
+        // not to actually play the mic audio back to the user.
+        const silentGain = ctx.createGain();
+        silentGain.gain.value = 0;
         source.connect(processor);
-        processor.connect(ctx.destination);
+        processor.connect(silentGain);
+        silentGain.connect(ctx.destination);
 
         setVoiceState("listening");
       } catch {
