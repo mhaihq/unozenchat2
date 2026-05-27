@@ -84,6 +84,26 @@ function getInitialView(): AppView {
   return "dashboard";
 }
 
+async function autoEnrollIfNeeded(userId: string, email: string) {
+  if (!email) return;
+  // Check if this email has a cohort assigned
+  const { data: allowed } = await supabase
+    .from("allowed_emails")
+    .select("cohort_id")
+    .eq("email", email.toLowerCase())
+    .single();
+  if (!allowed?.cohort_id) return;
+  // Enroll if not already enrolled
+  const { data: existing } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("cohort_id", allowed.cohort_id)
+    .maybeSingle();
+  if (existing) return;
+  await supabase.from("enrollments").insert({ user_id: userId, cohort_id: allowed.cohort_id });
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [view, setView] = useState<AppView>(getInitialView);
@@ -124,8 +144,14 @@ export default function App() {
   });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setUser(session?.user ?? null));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) autoEnrollIfNeeded(session.user.id, session.user.email ?? "");
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) autoEnrollIfNeeded(session.user.id, session.user.email ?? "");
+    });
     return () => subscription.unsubscribe();
   }, []);
 
