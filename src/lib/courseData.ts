@@ -23,6 +23,7 @@ export const CORSO: Lezione[] = [
     title: "Le Fondamenta",
     focus: "Come funziona l'AI, mercato, etica e rischi. Focus: Teoria, mercato, regolamentazione e privacy.",
     videoId: "1186907133",
+    videoHash: "9783c957d7",
     presentationUrl: "https://docs.google.com/presentation/d/1YKWj0Uc5VA2MFmEJkLwLrzoX2708ixWD/preview",
     subtopics: [
       {
