@@ -146,16 +146,16 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
       const msg = JSON.parse(event.data);
 
       switch (msg.type) {
-        case "response.audio.delta":
+        case "response.output_audio.delta":
           setVoiceState("speaking");
           playAudioChunk(msg.delta);
           break;
 
-        case "response.audio.done":
+        case "response.output_audio.done":
           setVoiceState("listening");
           break;
 
-        case "response.audio_transcript.delta":
+        case "response.output_audio_transcript.delta":
           setAssistantTranscript((prev) => {
             const next = prev + msg.delta;
             options.onAssistantTranscript?.(next);
@@ -163,7 +163,7 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
           });
           break;
 
-        case "response.audio_transcript.done":
+        case "response.output_audio_transcript.done":
           setAssistantTranscript("");
           break;
 
