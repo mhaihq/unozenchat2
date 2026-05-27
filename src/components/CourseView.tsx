@@ -56,29 +56,38 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
   useEffect(() => {
     async function load() {
       try {
-        const [enr] = await Promise.all([fetchMyEnrollment()]);
+        // Enrollment is optional — don't let it block loading
+        let enr = null;
+        try {
+          enr = await fetchMyEnrollment();
+        } catch { /* not enrolled or query failed, proceed with default course */ }
         setEnrollment(enr);
 
         const cohortId = enr?.cohort_id;
         const courseId = enr?.cohort?.course?.id ?? RECORDED_COURSE_ID;
 
-        // Try DB first; fall back to hardcoded data if DB not yet seeded
+        // Try DB first; fall back to hardcoded data if DB not seeded or subtopics missing
         let dbLessons: Lesson[] = [];
         try {
           dbLessons = await fetchLessons(courseId, cohortId);
-        } catch {
-          dbLessons = [];
-        }
+        } catch { /* fall through to legacy data */ }
 
-        const resolved = dbLessons.length > 0 ? dbLessons : legacyToLessons();
+        const resolved = dbLessons.length > 0 && dbLessons.some(l => l.subtopics.length > 0)
+          ? dbLessons
+          : legacyToLessons();
+
         setLessons(resolved);
-        setActiveLesson(resolved[0]);
+        setActiveLesson(resolved[0] ?? null);
         setActiveSubtopic(resolved[0]?.subtopics[0] ?? null);
 
-        // Load persisted progress
+        // Load persisted progress — non-critical
         try {
-          const prog = await fetchProgress((await import("../lib/supabase").then(m => m.supabase)).auth.getUser().then(r => r.data.user?.id ?? ""));
-          setCompletedIds(new Set(prog.map((p) => p.subtopic_id)));
+          const { supabase } = await import("../lib/supabase");
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const prog = await fetchProgress(user.id);
+            setCompletedIds(new Set(prog.map((p) => p.subtopic_id)));
+          }
         } catch { /* progress not critical */ }
       } finally {
         setLoading(false);
@@ -125,7 +134,12 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
     );
   }
 
-  if (!activeLesson || !activeSubtopic) return null;
+  if (!activeLesson || !activeSubtopic) return (
+    <div className="min-h-screen bg-bg flex flex-col items-center justify-center gap-3">
+      <p className="text-sm text-muted">Impossibile caricare il corso.</p>
+      <button onClick={onBack} className="text-sm text-accent underline">Torna alla dashboard</button>
+    </div>
+  );
 
   const currentIndex = activeLesson.subtopics.findIndex((s) => s.id === activeSubtopic.id);
   const prevSubtopic = currentIndex > 0 ? activeLesson.subtopics[currentIndex - 1] : null;
@@ -316,9 +330,9 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                     <div className="rounded-xl overflow-hidden border border-[rgba(20,20,20,0.08)] shadow-card" style={{ aspectRatio: "16/9" }}>
                       {(mediaTab === "video" || !presentationUrl) && videoId && (
                         <iframe
-                          src={`https://player.vimeo.com/video/${videoId}?badge=0&autopause=0&player_id=0&app_id=58479`}
+                          src={`https://player.vimeo.com/video/${videoId}?autopause=0&dnt=1`}
                           className="w-full h-full"
-                          allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                          allow="autoplay; fullscreen; picture-in-picture"
                           title={`Lezione ${activeLesson.number} — ${activeLesson.title}`}
                         />
                       )}

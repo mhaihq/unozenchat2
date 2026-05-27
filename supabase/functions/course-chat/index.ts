@@ -304,45 +304,65 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // POST /realtime-token - mint an ephemeral Realtime session token (safe to use from the browser)
-    if (path === "/realtime-token" && req.method === "POST") {
+    // POST /realtime-sdp - WebRTC SDP proxy.
+    if (path === "/realtime-sdp" && req.method === "POST") {
       const body = await req.json().catch(() => ({}));
-      const { instructions, voice, model } = body as { instructions?: string; voice?: string; model?: string };
-
-      const upstream = await fetch("https://api.openai.com/v1/realtime/sessions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
+      const { sdp, model } = body as { sdp?: string; model?: string };
+      if (!sdp) {
+        return new Response(JSON.stringify({ error: "sdp is required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const realtimeModel = model ?? "gpt-realtime-2";
+      const upstream = await fetch(
+        `https://api.openai.com/v1/realtime?model=${encodeURIComponent(realtimeModel)}`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/sdp" },
+          body: sdp,
         },
-        body: JSON.stringify({
-          model: model ?? "gpt-4o-realtime-preview",
-          voice: voice ?? "alloy",
-          modalities: ["text", "audio"],
-          instructions: instructions ?? "",
-          input_audio_format: "pcm16",
-          output_audio_format: "pcm16",
-          input_audio_transcription: { model: "whisper-1" },
-          turn_detection: { type: "server_vad", threshold: 0.5, silence_duration_ms: 600 },
-        }),
-      });
-
-      const text = await upstream.text();
-      return new Response(text, {
-        status: upstream.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      );
+      if (!upstream.ok) {
+        const errText = await upstream.text();
+        console.error("OpenAI Realtime SDP error:", upstream.status, errText);
+        return new Response(JSON.stringify({ error: errText }), {
+          status: upstream.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const answerSdp = await upstream.text();
+      return new Response(JSON.stringify({ sdp: answerSdp }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // POST /realtime-token - ephemeral token (GA model, minimal body)
+    if (path === "/realtime-token" && req.method === "POST") {
+      const body = await req.json().catch(() => ({}));
+      const { instructions, voice, model } = body as { instructions?: string; voice?: string; model?: string };
+      const realtimeModel = model ?? "gpt-realtime-2";
+      const upstream = await fetch("https://api.openai.com/v1/realtime/sessions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: realtimeModel, voice: voice ?? "alloy", instructions: instructions ?? "" }),
+      });
+      if (!upstream.ok) {
+        const errText = await upstream.text();
+        console.error("OpenAI Realtime sessions error:", upstream.status, errText);
+        return new Response(JSON.stringify({ error: errText }), {
+          status: upstream.status, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const text = await upstream.text();
+      return new Response(text, { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     return new Response(JSON.stringify({ error: "Not found" }), {
-      status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

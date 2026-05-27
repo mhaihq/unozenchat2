@@ -5,7 +5,7 @@ import type { Lesson as Lezione, Subtopic } from "../lib/types";
 import { CORSO } from "../lib/courseData";
 import { useVoiceRecorder } from "../hooks/useVoiceRecorder";
 import { VoiceModal } from "./VoiceModal";
-import { EDGE_FUNCTION_URL } from "../lib/supabase";
+import { EDGE_FUNCTION_URL, supabase } from "../lib/supabase";
 
 type Level = "beginner" | "intermediate" | "advanced";
 
@@ -135,12 +135,15 @@ export function LessonChat({ subtopic, lezione, cohortId }: Props) {
 
     try {
       const history = [...messages, userMsg].map((m) => ({ role: m.role, content: m.content }));
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+
       const res = await fetch(`${EDGE_FUNCTION_URL}/lesson-chat`, {
         method: "POST",
         signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",

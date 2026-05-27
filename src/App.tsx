@@ -78,10 +78,17 @@ function TypingBubble() {
   );
 }
 
+function getInitialView(): AppView {
+  const { hash, pathname, search } = window.location;
+  if (pathname === "/admin" || hash === "#admin" || search.includes("admin")) return "admin";
+  return "dashboard";
+}
+
 export default function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  const [view, setView] = useState<AppView>("dashboard");
+  const [view, setView] = useState<AppView>(getInitialView);
   const [adminAuthed, setAdminAuthed] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
   const { result: checkoutResult, clear: clearCheckout } = useCheckoutResult();
 
   async function handleBuy(priceId: string, courseId: string, cohortId?: string) {
@@ -177,6 +184,7 @@ export default function App() {
     setDocuments([]);
     setView("dashboard");
     setAdminAuthed(false);
+    setAdminPassword("");
   }
 
   if (user === undefined) {
@@ -194,6 +202,7 @@ export default function App() {
   }
 
   if (!user) {
+    if (view === "admin") return <AdminLogin onSuccess={(pw) => { setAdminAuthed(true); setAdminPassword(pw); window.location.hash = "admin"; }} onBack={() => { setView("home"); window.location.hash = ""; }} />;
     if (view === "auth") return <AuthPage onAuth={() => setView("dashboard")} />;
     if (view === "course-page-ondemand") return (
       <CoursePageOndemand
@@ -218,8 +227,8 @@ export default function App() {
   }
 
   if (view === "admin") {
-    if (!adminAuthed) return <AdminLogin onSuccess={() => setAdminAuthed(true)} onBack={() => setView("dashboard")} />;
-    return <AdminPanel documents={documents} onDocumentsChange={setDocuments} onLogout={() => { setAdminAuthed(false); setView("dashboard"); }} />;
+    if (!adminAuthed) return <AdminLogin onSuccess={(pw) => { setAdminAuthed(true); setAdminPassword(pw); window.location.hash = "admin"; }} onBack={() => { setView("dashboard"); window.location.hash = ""; }} />;
+    return <AdminPanel documents={documents} onDocumentsChange={setDocuments} adminPassword={adminPassword} onLogout={() => { setAdminAuthed(false); setAdminPassword(""); setView("dashboard"); window.location.hash = ""; }} />;
   }
 
   const displayName = user.user_metadata?.full_name?.split(" ")[0] ?? user.email?.split("@")[0] ?? "Tu";

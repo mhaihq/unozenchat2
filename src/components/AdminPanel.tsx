@@ -1,14 +1,16 @@
 import { useRef, useState, useEffect } from "react";
-import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, RefreshCw, UserPlus, Mail } from "lucide-react";
+import { Upload, FileText, Trash2, AlertCircle, CheckCircle, Loader2, X, LogOut, Key, RefreshCw, UserPlus, Mail, BookOpen } from "lucide-react";
 
 const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
 import type { Document, UploadStatus } from "../lib/types";
 import { uploadDocument, deleteDocument, updateAdminPassword, fetchAllowedEmails, addAllowedEmail, removeAllowedEmail } from "../lib/api";
+import { AdminCourses } from "./AdminCourses";
 
 interface Props {
   documents: Document[];
   onDocumentsChange: (docs: Document[]) => void;
   onLogout: () => void;
+  adminPassword: string;
 }
 
 interface UploadItem {
@@ -30,11 +32,11 @@ function formatDate(d: Date): string {
   return d.toLocaleDateString("it-IT", { month: "short", day: "numeric", year: "numeric" });
 }
 
-export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
+export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPassword }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [tab, setTab] = useState<"materials" | "accessi" | "settings">("materials");
+  const [tab, setTab] = useState<"corsi" | "materials" | "accessi" | "settings">("corsi");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -185,7 +187,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
 
         {/* Tabs */}
         <div className="flex border-b border-grey-200 mb-6">
-          {(["materials", "accessi", "settings"] as const).map((t) => (
+          {(["corsi", "materials", "accessi", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -195,10 +197,14 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout }: Props) {
                   : "border-transparent text-grey-500 hover:text-grey-800"
               }`}
             >
-              {t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
+              {t === "corsi" ? "Corsi" : t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
             </button>
           ))}
         </div>
+
+        {tab === "corsi" && (
+          <AdminCourses adminPassword={adminPassword} />
+        )}
 
         {tab === "materials" && (
           <div className="space-y-5">

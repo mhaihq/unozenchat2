@@ -21,7 +21,7 @@ export const CORSO: Lezione[] = [
     number: 1,
     title: "Le Fondamenta",
     focus: "Come funziona l'AI, mercato, etica e rischi. Focus: Teoria, mercato, regolamentazione e privacy.",
-    videoId: "1186228117",
+    videoId: "1186907133",
     presentationUrl: "https://docs.google.com/presentation/d/1YKWj0Uc5VA2MFmEJkLwLrzoX2708ixWD/preview",
     subtopics: [
       {
@@ -77,6 +77,7 @@ export const CORSO: Lezione[] = [
     number: 2,
     title: "Prompt Engineering per Psicologi",
     focus: "Imparare a comunicare con l'AI, framework testuali e simulazioni cliniche.",
+    videoId: "1190465889",
     subtopics: [
       {
         id: "l2-s1",
@@ -143,6 +144,7 @@ export const CORSO: Lezione[] = [
     number: 3,
     title: "ChatGPT e Claude",
     focus: "L'Arsenale del Professionista. Deep-dive demo-centrico sui due strumenti leader e le loro funzioni più avanzate.",
+    videoId: "1190785712",
     subtopics: [
       {
         id: "l3-s1",
@@ -211,6 +213,7 @@ export const CORSO: Lezione[] = [
     number: 4,
     title: "Toolkit del Ricercatore",
     focus: "Gemini, NotebookLM, Perplexity. AI ancorata alle fonti, ricerca della letteratura e gestione documentale.",
+    videoId: "1192821053",
     subtopics: [
       {
         id: "l4-s1",

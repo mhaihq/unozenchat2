@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { EDGE_FUNCTION_URL } from "../lib/supabase";
+import { EDGE_FUNCTION_URL, supabase } from "../lib/supabase";
 
 export type RecordingState = "idle" | "recording" | "transcribing" | "error";
 
@@ -28,9 +28,11 @@ export function useVoiceRecorder({ onTranscript, onError }: UseVoiceRecorderOpti
           const formData = new FormData();
           formData.append("file", blob, `audio.${mimeType.split("/")[1]}`);
           formData.append("model", "whisper-1");
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
           const res = await fetch(`${EDGE_FUNCTION_URL}/transcribe`, {
             method: "POST",
-            headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+            headers: { Authorization: `Bearer ${token}` },
             body: formData,
           });
           if (!res.ok) throw new Error(await res.text());

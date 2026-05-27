@@ -314,3 +314,171 @@ export async function setCohortLessonVideo(cohortId: string, lessonId: string, v
     .upsert({ cohort_id: cohortId, lesson_id: lessonId, video_id: videoId }, { onConflict: "cohort_id,lesson_id" });
   if (error) throw new Error(error.message);
 }
+
+// ─── Admin LMS CRUD ────────────────────────────────────────────────────────────
+
+export async function fetchAllCoursesAdmin(): Promise<Course[]> {
+  const { data, error } = await supabase
+    .from("courses")
+    .select("id, slug, title, description, type, is_active")
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function adminCreateCourse(payload: {
+  slug: string; title: string; description?: string; type: "live" | "recorded"; is_active?: boolean;
+}): Promise<Course> {
+  const { data, error } = await supabase
+    .from("courses")
+    .insert({ ...payload, is_active: payload.is_active ?? true })
+    .select("id, slug, title, description, type, is_active")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Course;
+}
+
+export async function adminUpdateCourse(id: string, patch: Partial<Omit<Course, "id">>): Promise<void> {
+  const { error } = await supabase.from("courses").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteCourse(id: string): Promise<void> {
+  const { error } = await supabase.from("courses").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function fetchAllCohortsAdmin(courseId: string): Promise<Cohort[]> {
+  const { data, error } = await supabase
+    .from("cohorts")
+    .select("id, course_id, name, starts_at, ends_at, is_active")
+    .eq("course_id", courseId)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function adminUpdateCohort(id: string, patch: Partial<Omit<Cohort, "id" | "course_id">>): Promise<void> {
+  const { error } = await supabase.from("cohorts").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteCohort(id: string): Promise<void> {
+  const { error } = await supabase.from("cohorts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function fetchAllLessonsAdmin(courseId: string): Promise<Lesson[]> {
+  const { data: lessonsRaw, error: le } = await supabase
+    .from("lessons")
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .eq("course_id", courseId)
+    .order("sort_order");
+  if (le) throw new Error(le.message);
+
+  const { data: subtopicsRaw, error: se } = await supabase
+    .from("subtopics")
+    .select("id, lesson_id, title, bullets, suggested_questions, sort_order")
+    .in("lesson_id", (lessonsRaw ?? []).map((l) => l.id))
+    .order("sort_order");
+  if (se) throw new Error(se.message);
+
+  const subtopicsByLesson: Record<string, Subtopic[]> = {};
+  for (const s of subtopicsRaw ?? []) {
+    if (!subtopicsByLesson[s.lesson_id]) subtopicsByLesson[s.lesson_id] = [];
+    subtopicsByLesson[s.lesson_id].push(s as Subtopic);
+  }
+
+  return (lessonsRaw ?? []).map((l) => ({
+    ...l,
+    subtopics: subtopicsByLesson[l.id] ?? [],
+  } as Lesson));
+}
+
+export async function adminCreateLesson(payload: {
+  course_id: string; number: number; title: string; focus?: string;
+  default_video_id?: string; default_presentation_url?: string; sort_order?: number;
+}): Promise<Lesson> {
+  const { data, error } = await supabase
+    .from("lessons")
+    .insert({ ...payload, sort_order: payload.sort_order ?? payload.number })
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .single();
+  if (error) throw new Error(error.message);
+  return { ...data, subtopics: [] } as Lesson;
+}
+
+export async function adminUpdateLesson(id: string, patch: Partial<Omit<Lesson, "id" | "course_id" | "subtopics">>): Promise<void> {
+  const { error } = await supabase.from("lessons").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteLesson(id: string): Promise<void> {
+  const { error } = await supabase.from("lessons").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminCreateSubtopic(payload: {
+  lesson_id: string; title: string; bullets?: string[]; suggested_questions?: string[]; sort_order?: number;
+}): Promise<Subtopic> {
+  const { data, error } = await supabase
+    .from("subtopics")
+    .insert({ bullets: [], suggested_questions: [], ...payload })
+    .select("id, lesson_id, title, bullets, suggested_questions, sort_order")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Subtopic;
+}
+
+export async function adminUpdateSubtopic(id: string, patch: Partial<Omit<Subtopic, "id" | "lesson_id">>): Promise<void> {
+  const { error } = await supabase.from("subtopics").update(patch).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminDeleteSubtopic(id: string): Promise<void> {
+  const { error } = await supabase.from("subtopics").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function adminSetCohortLessonOverride(
+  cohortId: string,
+  lessonId: string,
+  overrides: { video_id?: string | null; presentation_url?: string | null }
+): Promise<void> {
+  const { error } = await supabase
+    .from("cohort_lessons")
+    .upsert({ cohort_id: cohortId, lesson_id: lessonId, ...overrides }, { onConflict: "cohort_id,lesson_id" });
+  if (error) throw new Error(error.message);
+}
+
+export interface AdminEnrollment {
+  id: string;
+  user_id: string;
+  email: string;
+  enrolled_at: string;
+}
+
+async function callAdminOps(action: string, adminPassword: string, params: Record<string, unknown>): Promise<unknown> {
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const url = `${SUPABASE_URL}/functions/v1/admin-ops`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+    body: JSON.stringify({ action, adminPassword, ...params }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.error) throw new Error(json.error ?? "Admin op failed");
+  return json.data;
+}
+
+export async function adminListEnrollments(cohortId: string, adminPassword: string): Promise<AdminEnrollment[]> {
+  return callAdminOps("list_enrollments", adminPassword, { cohortId }) as Promise<AdminEnrollment[]>;
+}
+
+export async function adminEnrollUserByEmail(cohortId: string, email: string, adminPassword: string): Promise<void> {
+  await callAdminOps("enroll_user", adminPassword, { cohortId, email });
+}
+
+export async function adminRemoveEnrollment(enrollmentId: string, adminPassword: string): Promise<void> {
+  await callAdminOps("remove_enrollment", adminPassword, { enrollmentId });
+}

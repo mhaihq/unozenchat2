@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback } from "react";
-import { EDGE_FUNCTION_URL } from "../lib/supabase";
 
 export type VoiceState = "idle" | "connecting" | "listening" | "speaking" | "error";
 
@@ -9,25 +8,8 @@ interface UseRealtimeVoiceOptions {
   onStateChange?: (state: VoiceState) => void;
 }
 
-const WS_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview";
+const WS_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-2";
 const SAMPLE_RATE = 24000;
-
-async function mintEphemeralToken(systemPrompt: string): Promise<string> {
-  const res = await fetch(`${EDGE_FUNCTION_URL}/realtime-token`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify({ instructions: systemPrompt, voice: "alloy" }),
-  });
-  if (!res.ok) throw new Error(`Failed to mint realtime token: ${await res.text()}`);
-  const data = await res.json();
-  // OpenAI returns { client_secret: { value, expires_at }, ... }
-  const token = data?.client_secret?.value;
-  if (!token) throw new Error("No client_secret returned from /realtime-token");
-  return token;
-}
 
 function floatTo16BitPCM(float32Array: Float32Array): ArrayBuffer {
   const buffer = new ArrayBuffer(float32Array.length * 2);
@@ -108,19 +90,12 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     setAssistantTranscript("");
     setUserTranscript("");
 
-    let ephemeralToken: string;
-    try {
-      ephemeralToken = await mintEphemeralToken(systemPrompt);
-    } catch (err) {
-      console.error(err);
-      setVoiceState("error");
-      return;
-    }
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
+    // GA protocol: no "openai-beta.realtime-v1" subprotocol
     const ws = new WebSocket(WS_URL, [
       "realtime",
-      `openai-insecure-api-key.${ephemeralToken}`,
-      "openai-beta.realtime-v1",
+      `openai-insecure-api-key.${apiKey}`,
     ]);
     wsRef.current = ws;
 
@@ -128,10 +103,10 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     nextPlayTimeRef.current = 0;
 
     ws.onopen = async () => {
-      // Configure session
       ws.send(JSON.stringify({
         type: "session.update",
         session: {
+          type: "realtime",
           modalities: ["text", "audio"],
           instructions: systemPrompt,
           voice: "alloy",
@@ -142,7 +117,6 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         },
       }));
 
-      // Start mic
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         streamRef.current = stream;
@@ -151,7 +125,6 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         const source = ctx.createMediaStreamSource(stream);
         sourceRef.current = source;
 
-        // Downsample to 24kHz PCM16 and send to WS
         const processor = ctx.createScriptProcessor(4096, 1, 1);
         processorRef.current = processor;
 
@@ -208,11 +181,11 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         case "input_audio_buffer.speech_started":
           setVoiceState("listening");
           setUserTranscript("");
-          nextPlayTimeRef.current = 0; // interrupt AI speech
+          nextPlayTimeRef.current = 0;
           break;
 
         case "error":
-          console.error("Realtime API error:", msg.error);
+          console.error("Realtime API error:", JSON.stringify(msg.error, null, 2));
           setVoiceState("error");
           break;
       }

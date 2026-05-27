@@ -74,8 +74,6 @@ Deno.serve(async (req: Request) => {
         cohort_id: cohortId ?? "",
         course_id: courseId ?? "",
       },
-      automatic_tax: { enabled: true },
-      customer_update: { address: "auto" },
     };
     if (customerId) sessionParams.customer = customerId;
 

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { verifyAdminPassword } from "../lib/api";
+import { supabase } from "../lib/supabase";
 
 interface Props {
-  onSuccess: () => void;
+  onSuccess: (password: string) => void;
   onBack: () => void;
 }
 
@@ -20,8 +21,14 @@ export function AdminLogin({ onSuccess, onBack }: Props) {
     setError("");
     try {
       const ok = await verifyAdminPassword(password);
-      if (ok) onSuccess();
-      else setError("Password errata.");
+      if (!ok) { setError("Password errata."); return; }
+      // Ensure a Supabase session exists for RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Try anonymous sign-in (requires anonymous auth enabled in Supabase dashboard)
+        await supabase.auth.signInAnonymously().catch(() => {});
+      }
+      onSuccess(password);
     } catch {
       setError("Impossibile verificare la password. Riprova.");
     } finally {
