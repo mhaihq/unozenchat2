@@ -46,6 +46,7 @@ export interface Lesson {
   title: string;
   focus: string | null;
   default_video_id: string | null;
+  default_video_hash: string | null;
   default_presentation_url: string | null;
   sort_order: number;
   subtopics: Subtopic[];

@@ -26,6 +26,7 @@ function legacyToLessons(): Lesson[] {
     title: l.title,
     focus: l.focus,
     default_video_id: l.videoId ?? null,
+    default_video_hash: l.videoHash ?? null,
     default_presentation_url: l.presentationUrl ?? null,
     sort_order: l.number,
     subtopics: l.subtopics.map((s) => ({
@@ -153,6 +154,7 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
 
   const initials = displayName.slice(0, 2).toUpperCase();
   const videoId = activeLesson.video_id ?? activeLesson.default_video_id;
+  const videoHash = activeLesson.default_video_hash;
   const presentationUrl = activeLesson.presentation_url ?? activeLesson.default_presentation_url;
 
   const SidebarContent = () => (
@@ -330,7 +332,7 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                     <div className="rounded-xl overflow-hidden border border-[rgba(20,20,20,0.08)] shadow-card" style={{ aspectRatio: "16/9" }}>
                       {(mediaTab === "video" || !presentationUrl) && videoId && (
                         <iframe
-                          src={`https://player.vimeo.com/video/${videoId}?autopause=0&dnt=1`}
+                          src={`https://player.vimeo.com/video/${videoId}?${videoHash ? `h=${videoHash}&` : ""}autopause=0&player_id=0&app_id=58479`}
                           className="w-full h-full"
                           allow="autoplay; fullscreen; picture-in-picture"
                           title={`Lezione ${activeLesson.number} — ${activeLesson.title}`}

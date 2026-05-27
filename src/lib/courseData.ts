@@ -11,6 +11,7 @@ export interface Lezione {
   title: string;
   focus: string;
   videoId?: string;
+  videoHash?: string;
   presentationUrl?: string;
   subtopics: Subtopic[];
 }
@@ -214,6 +215,7 @@ export const CORSO: Lezione[] = [
     title: "Toolkit del Ricercatore",
     focus: "Gemini, NotebookLM, Perplexity. AI ancorata alle fonti, ricerca della letteratura e gestione documentale.",
     videoId: "1192821053",
+    videoHash: "f27e6f8d51",
     subtopics: [
       {
         id: "l4-s1",
