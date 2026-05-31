@@ -229,6 +229,7 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
   );
 
   return (
+    <>
     <div className="min-h-screen bg-bg font-sans">
       <div className="max-w-[1280px] mx-auto my-6 bg-surface rounded-xl border border-[rgba(20,20,20,0.08)] overflow-hidden shadow-card">
 
@@ -468,5 +469,6 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
         />
       )}
     </AnimatePresence>
+    </>
   );
 }
