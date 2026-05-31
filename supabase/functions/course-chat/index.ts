@@ -304,6 +304,104 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // POST /quiz-submit - Server-side quiz scoring (is_correct never sent to client)
+    if (path === "/quiz-submit" && req.method === "POST") {
+      const { data: { user } } = await supabase.auth.getUser(
+        req.headers.get("Authorization")?.replace("Bearer ", "") ?? ""
+      );
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { quiz_id, cohort_id, answers } = await req.json() as {
+        quiz_id: string;
+        cohort_id?: string;
+        answers: Record<string, string>; // { question_id: option_id }
+      };
+
+      if (!quiz_id || !answers) {
+        return new Response(JSON.stringify({ error: "quiz_id and answers are required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Fetch quiz config
+      const { data: quiz } = await supabase.from("ecm_quizzes").select("pass_threshold").eq("id", quiz_id).single();
+      if (!quiz) {
+        return new Response(JSON.stringify({ error: "Quiz not found" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Fetch all options with correct flag (service role — never exposed to client)
+      const { data: options } = await supabase
+        .from("ecm_quiz_options")
+        .select("id, question_id, is_correct");
+
+      const correctMap: Record<string, string> = {}; // question_id → correct option_id
+      for (const opt of options ?? []) {
+        if (opt.is_correct) correctMap[opt.question_id] = opt.id;
+      }
+
+      const questionIds = Object.keys(answers);
+      let correctCount = 0;
+      const wrongQuestionIds: string[] = [];
+      const answerRows: { attempt_id: string; question_id: string; option_id: string; is_correct: boolean }[] = [];
+
+      // Create attempt record
+      const { data: attempt } = await supabase.from("ecm_quiz_attempts").insert({
+        user_id: user.id,
+        quiz_id,
+        cohort_id: cohort_id ?? null,
+        submitted_at: new Date().toISOString(),
+        score: 0,
+        passed: false,
+      }).select("id").single();
+
+      if (!attempt) {
+        return new Response(JSON.stringify({ error: "Failed to create attempt" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      for (const qid of questionIds) {
+        const chosen = answers[qid];
+        const isCorrect = correctMap[qid] === chosen;
+        if (isCorrect) correctCount++;
+        else wrongQuestionIds.push(qid);
+        answerRows.push({ attempt_id: attempt.id, question_id: qid, option_id: chosen, is_correct: isCorrect });
+      }
+
+      const score = questionIds.length > 0 ? correctCount / questionIds.length : 0;
+      const passed = score >= (quiz.pass_threshold ?? 0.75);
+
+      // Update attempt with score
+      await supabase.from("ecm_quiz_attempts").update({ score, passed, submitted_at: new Date().toISOString() }).eq("id", attempt.id);
+
+      // Insert answers
+      if (answerRows.length > 0) await supabase.from("ecm_quiz_answers").insert(answerRows);
+
+      // If passed, update ecm_participation
+      if (passed && cohort_id) {
+        await supabase.from("ecm_participation").upsert({
+          user_id: user.id,
+          cohort_id,
+          quiz_passed_at: new Date().toISOString(),
+        }, { onConflict: "user_id,cohort_id" });
+      }
+
+      return new Response(JSON.stringify({
+        passed,
+        score,
+        correct: correctCount,
+        total: questionIds.length,
+        wrong_question_ids: wrongQuestionIds,
+        attempt_id: attempt.id,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // POST /realtime-sdp - WebRTC SDP proxy.
     if (path === "/realtime-sdp" && req.method === "POST") {
       const body = await req.json().catch(() => ({}));

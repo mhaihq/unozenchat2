@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Check, ChevronLeft, Menu, X, Settings, LogOut, Loader2 } from "lucide-react";
+import { Check, ChevronLeft, Menu, X, Settings, LogOut, Loader2, ClipboardList } from "lucide-react";
+import { EcmQuiz } from "./EcmQuiz";
+import { supabase } from "../lib/supabase";
 import type { Lesson, Subtopic, Enrollment } from "../lib/types";
 import { fetchLessons, fetchMyEnrollment, fetchProgress, markSubtopicComplete, unmarkSubtopicComplete } from "../lib/api";
 import { CORSO } from "../lib/courseData";
@@ -53,6 +55,9 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
   const [activeSubtopic, setActiveSubtopic] = useState<Subtopic | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mediaTab, setMediaTab] = useState<"video" | "presentation">("video");
+  const [quizOpen, setQuizOpen] = useState(false);
+  const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
+  const [quizPassed, setQuizPassed] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -83,13 +88,33 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
 
         // Load persisted progress — non-critical
         try {
-          const { supabase } = await import("../lib/supabase");
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             const prog = await fetchProgress(user.id);
             setCompletedIds(new Set(prog.map((p) => p.subtopic_id)));
+
+            // Check if quiz already passed
+            if (enr?.cohort_id) {
+              const { data: part } = await supabase
+                .from("ecm_participation")
+                .select("quiz_passed_at")
+                .eq("user_id", user.id)
+                .eq("cohort_id", enr.cohort_id)
+                .maybeSingle();
+              if (part?.quiz_passed_at) setQuizPassed(true);
+            }
           }
         } catch { /* progress not critical */ }
+
+        // Fetch active quiz for this cohort/course
+        try {
+          const cohortId = enr?.cohort_id;
+          const courseId = enr?.cohort?.course?.id ?? RECORDED_COURSE_ID;
+          const query = supabase.from("ecm_quizzes").select("id").eq("is_active", true);
+          cohortId ? query.eq("cohort_id", cohortId) : query.eq("course_id", courseId);
+          const { data: qz } = await query.maybeSingle();
+          if (qz?.id) setActiveQuizId(qz.id);
+        } catch { /* no quiz yet */ }
       } finally {
         setLoading(false);
       }
@@ -402,13 +427,28 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                     >
                       ← Precedente
                     </button>
-                    <button
-                      onClick={() => nextSubtopic && setActiveSubtopic(nextSubtopic)}
-                      disabled={!nextSubtopic}
-                      className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Prossimo →
-                    </button>
+                    {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId ? (
+                      <button
+                        onClick={() => setQuizOpen(true)}
+                        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                          quizPassed
+                            ? "bg-green-100 text-green-700 cursor-default"
+                            : "bg-accent text-white hover:bg-accent-deep"
+                        }`}
+                        disabled={quizPassed}
+                      >
+                        <ClipboardList className="w-4 h-4" />
+                        {quizPassed ? "Test superato ✓" : "Fai il test ECM"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => nextSubtopic && setActiveSubtopic(nextSubtopic)}
+                        disabled={!nextSubtopic}
+                        className="px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-deep disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Prossimo →
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -417,5 +457,16 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
         </div>
       </div>
     </div>
+
+    <AnimatePresence>
+      {quizOpen && activeQuizId && (
+        <EcmQuiz
+          quizId={activeQuizId}
+          cohortId={enrollment?.cohort_id}
+          onClose={() => setQuizOpen(false)}
+          onPassed={() => setQuizPassed(true)}
+        />
+      )}
+    </AnimatePresence>
   );
 }
