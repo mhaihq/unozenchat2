@@ -1,4 +1,20 @@
 import { useState, useRef, useCallback } from "react";
+import { EDGE_FUNCTION_URL, supabase } from "../lib/supabase";
+
+async function fetchEphemeralToken(instructions: string): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const authToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const res = await fetch(`${EDGE_FUNCTION_URL}/realtime-token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
+    body: JSON.stringify({ instructions, voice: "alloy", model: "gpt-realtime-2" }),
+  });
+  if (!res.ok) throw new Error(`Token fetch failed: ${await res.text()}`);
+  const data = await res.json();
+  const token = data?.client_secret?.value;
+  if (!token) throw new Error("No ephemeral token in response");
+  return token;
+}
 
 export type VoiceState = "idle" | "connecting" | "listening" | "speaking" | "error";
 
@@ -90,12 +106,18 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     setAssistantTranscript("");
     setUserTranscript("");
 
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    let ephemeralToken: string;
+    try {
+      ephemeralToken = await fetchEphemeralToken(systemPrompt);
+    } catch (err) {
+      console.error("Failed to get ephemeral token:", err);
+      setVoiceState("error");
+      return;
+    }
 
-    // GA protocol: no "openai-beta.realtime-v1" subprotocol
     const ws = new WebSocket(WS_URL, [
       "realtime",
-      `openai-insecure-api-key.${apiKey}`,
+      `openai-insecure-api-key.${ephemeralToken}`,
     ]);
     wsRef.current = ws;
 
