@@ -1,22 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, RotateCcw } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, RotateCcw, BookOpen } from "lucide-react";
 import { EDGE_FUNCTION_URL, supabase } from "../lib/supabase";
 
-interface Option {
-  id: string;
-  text: string;
-}
+// Per Allegato F (AGENAS FAD rules):
+// - Test only after content fruition ✓ (gate in CourseView)
+// - Show only WHICH questions were wrong — never the correct answer ✓
+// - "Potrà essere data indicazione di dove trovare l'argomento nel materiale" ✓ (lesson ref)
+// - Correct answers only after event closes ✓ (is_correct never sent to client)
+// - Retakes allowed ✓ — each attempt gets fresh randomization of both questions AND options
 
-interface Question {
-  id: string;
-  text: string;
-  options: Option[];
-}
-
+interface Option { id: string; text: string; }
+interface Question { id: string; text: string; options: Option[]; lesson_ref?: string; }
 interface QuizResult {
   passed: boolean;
-  score: number;          // 0..1
+  score: number;
   correct: number;
   total: number;
   wrong_question_ids: string[];
@@ -30,18 +28,30 @@ interface Props {
   onPassed: () => void;
 }
 
+// Knuth shuffle — guarantees uniform randomization
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 async function fetchQuestions(quizId: string): Promise<Question[]> {
   const { data, error } = await supabase
     .from("ecm_quiz_questions")
     .select("id, text, ecm_quiz_options(id, text)")
-    .eq("quiz_id", quizId)
-    .order("sort_order");
+    .eq("quiz_id", quizId);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((q: { id: string; text: string; ecm_quiz_options: { id: string; text: string }[] }) => ({
+
+  // Double randomization: shuffle questions, then shuffle each question's options independently
+  const shuffledQuestions = shuffle(data ?? []);
+  return shuffledQuestions.map((q: { id: string; text: string; ecm_quiz_options: { id: string; text: string }[] }) => ({
     id: q.id,
     text: q.text,
-    options: (q.ecm_quiz_options ?? []).sort(() => Math.random() - 0.5),
-  })).sort(() => Math.random() - 0.5);
+    options: shuffle(q.ecm_quiz_options ?? []),
+  }));
 }
 
 async function submitQuiz(
@@ -71,20 +81,27 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchQuestions(quizId)
-      .then((qs) => {
-        if (qs.length === 0) { setError("Nessuna domanda disponibile per questo quiz."); setScreen("error"); return; }
-        setQuestions(qs);
-        setScreen("taking");
-      })
-      .catch((e) => { setError(e.message); setScreen("error"); });
+  const loadQuestions = useCallback(async () => {
+    setScreen("loading");
+    setAnswers({});
+    setCurrent(0);
+    setResult(null);
+    try {
+      const qs = await fetchQuestions(quizId);
+      if (qs.length === 0) { setError("Nessuna domanda disponibile per questo quiz."); setScreen("error"); return; }
+      setQuestions(qs);
+      setScreen("taking");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Errore caricamento");
+      setScreen("error");
+    }
   }, [quizId]);
+
+  useEffect(() => { loadQuestions(); }, [loadQuestions]);
 
   const q = questions[current];
   const answered = Object.keys(answers).length;
   const total = questions.length;
-  const isWrong = result ? result.wrong_question_ids.includes(q?.id ?? "") : false;
 
   async function handleSubmit() {
     if (answered < total) return;
@@ -102,15 +119,10 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
     }
   }
 
-  function retry() {
-    setAnswers({});
-    setCurrent(0);
-    setResult(null);
-    setScreen("loading");
-    fetchQuestions(quizId)
-      .then((qs) => { setQuestions(qs); setScreen("taking"); })
-      .catch((e) => { setError(e.message); setScreen("error"); });
-  }
+  // Retry: full fresh attempt with NEW randomization (both questions and options)
+  function retry() { loadQuestions(); }
+
+  const wrongQuestions = result ? questions.filter(q => result.wrong_question_ids.includes(q.id)) : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -125,7 +137,7 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
             <p className="text-xs uppercase tracking-widest text-faint">Verifica dell'apprendimento ECM</p>
             {screen === "taking" && (
               <p className="text-sm font-medium text-muted mt-0.5">
-                Domanda {current + 1} di {total} · {answered}/{total} risposte date
+                Domanda {current + 1} di {total} · {answered} risposte date
               </p>
             )}
           </div>
@@ -138,7 +150,6 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
         <div className="p-6 min-h-[340px] flex flex-col">
           <AnimatePresence mode="wait">
 
-            {/* Loading */}
             {screen === "loading" && (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex-1 flex items-center justify-center">
@@ -146,7 +157,6 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
               </motion.div>
             )}
 
-            {/* Error */}
             {screen === "error" && (
               <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
@@ -156,30 +166,22 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
               </motion.div>
             )}
 
-            {/* Quiz taking */}
             {screen === "taking" && q && (
               <motion.div key={`q-${current}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.18 }} className="flex-1 flex flex-col">
-
-                {/* Progress bar */}
                 <div className="h-1 bg-surface2 rounded-full mb-6 overflow-hidden">
                   <div className="h-full bg-accent rounded-full transition-all duration-300"
                     style={{ width: `${((current + 1) / total) * 100}%` }} />
                 </div>
-
                 <p className="text-base font-medium text-tx leading-relaxed mb-6">{q.text}</p>
-
                 <div className="space-y-2.5 flex-1">
                   {q.options.map((opt) => {
                     const selected = answers[q.id] === opt.id;
                     return (
-                      <button
-                        key={opt.id}
+                      <button key={opt.id}
                         onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))}
                         className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-all ${
-                          selected
-                            ? "border-accent bg-accent-soft text-accent font-medium"
-                            : "border-[rgba(20,20,20,0.1)] bg-surface2 text-muted hover:border-accent/50 hover:text-tx"
+                          selected ? "border-accent bg-accent-soft text-accent font-medium" : "border-[rgba(20,20,20,0.1)] bg-surface2 text-muted hover:border-accent/50 hover:text-tx"
                         }`}
                       >
                         {opt.text}
@@ -190,62 +192,78 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
               </motion.div>
             )}
 
-            {/* Result */}
             {screen === "result" && result && (
               <motion.div key="result" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className="flex-1 flex flex-col items-center justify-center text-center gap-5">
+                className="flex-1 flex flex-col gap-5">
 
-                {result.passed ? (
-                  <>
-                    <CheckCircle2 className="w-14 h-14 text-green-500" />
-                    <div>
-                      <h3 className="font-serif text-2xl font-normal text-tx">Test superato!</h3>
-                      <p className="text-muted text-sm mt-1">
-                        {result.correct} su {result.total} risposte corrette ({Math.round(result.score * 100)}%)
-                      </p>
-                    </div>
-                    <p className="text-sm text-faint max-w-xs">
-                      Completa il questionario di qualità per ricevere il tuo attestato ECM.
+                {/* Score summary */}
+                <div className={`flex flex-col items-center text-center pt-2 pb-4 border-b border-[rgba(20,20,20,0.06)] ${result.passed ? "" : ""}`}>
+                  {result.passed ? (
+                    <CheckCircle2 className="w-12 h-12 text-green-500 mb-3" />
+                  ) : (
+                    <AlertCircle className="w-12 h-12 text-amber-400 mb-3" />
+                  )}
+                  <h3 className="font-serif text-xl font-normal text-tx">
+                    {result.passed ? "Test superato!" : "Non superato"}
+                  </h3>
+                  <p className="text-muted text-sm mt-1">
+                    {result.correct} su {result.total} corrette · {Math.round(result.score * 100)}%
+                    {!result.passed && <span className="text-faint"> (soglia: 75%)</span>}
+                  </p>
+                </div>
+
+                {/* Passed: next step */}
+                {result.passed && (
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-faint text-center">
+                      Completa il questionario di qualità per ricevere l'attestato ECM.
                     </p>
                     <button onClick={onClose}
                       className="px-6 py-2.5 bg-accent text-white text-sm font-semibold rounded-xl hover:bg-accent-deep transition-colors">
                       Continua →
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-14 h-14 text-amber-400" />
-                    <div>
-                      <h3 className="font-serif text-2xl font-normal text-tx">Non superato</h3>
-                      <p className="text-muted text-sm mt-1">
-                        {result.correct} su {result.total} corrette ({Math.round(result.score * 100)}%) · soglia: 75%
+                  </div>
+                )}
+
+                {/* Failed: show wrong questions with lesson hint (Allegato F) */}
+                {!result.passed && wrongQuestions.length > 0 && (
+                  <div className="flex-1 overflow-y-auto">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen className="w-4 h-4 text-amber-500" />
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
+                        Domande da rivedere ({wrongQuestions.length})
                       </p>
                     </div>
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 text-left max-w-sm w-full">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2">
-                        Domande errate ({result.wrong_question_ids.length})
-                      </p>
-                      <ul className="space-y-1">
-                        {result.wrong_question_ids.map((id) => {
-                          const wq = questions.find((q) => q.id === id);
-                          return wq ? (
-                            <li key={id} className="text-sm text-amber-800 leading-snug">• {wq.text}</li>
-                          ) : null;
-                        })}
-                      </ul>
+                    <div className="space-y-2.5">
+                      {wrongQuestions.map((wq) => (
+                        <div key={wq.id} className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                          <p className="text-sm text-amber-900 leading-snug">{wq.text}</p>
+                          {wq.lesson_ref && (
+                            <p className="text-xs text-amber-600 mt-1.5">
+                              → Rivedi: {wq.lesson_ref}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <button onClick={retry}
-                      className="flex items-center gap-2 px-6 py-2.5 border border-[rgba(20,20,20,0.15)] text-sm text-muted rounded-xl hover:text-tx hover:border-[rgba(20,20,20,0.3)] transition-colors">
-                      <RotateCcw className="w-4 h-4" /> Riprova
-                    </button>
-                  </>
+                    <p className="text-xs text-faint mt-3 italic">
+                      Le risposte corrette saranno disponibili al termine del corso (Allegato F, normativa ECM).
+                    </p>
+                  </div>
+                )}
+
+                {!result.passed && (
+                  <button onClick={retry}
+                    className="flex items-center justify-center gap-2 px-6 py-2.5 border border-[rgba(20,20,20,0.15)] text-sm text-muted rounded-xl hover:text-tx hover:border-[rgba(20,20,20,0.3)] transition-colors mt-2">
+                    <RotateCcw className="w-4 h-4" /> Riprova con nuovo ordine casuale
+                  </button>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Footer nav (taking screen only) */}
+        {/* Footer nav */}
         {screen === "taking" && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-[rgba(20,20,20,0.06)] bg-surface2">
             <button
@@ -258,7 +276,7 @@ export function EcmQuiz({ quizId, cohortId, onClose, onPassed }: Props) {
 
             {current < total - 1 ? (
               <button
-                onClick={() => setCurrent((c) => Math.min(total - 1, c + 1))}
+                onClick={() => setCurrent((c) => c + 1)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent-deep transition-colors"
               >
                 Prossima <ChevronRight className="w-4 h-4" />

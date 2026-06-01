@@ -123,14 +123,25 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
           }
         } catch { /* progress not critical */ }
 
-        // Fetch active quiz for this cohort/course
+        // Fetch active quiz: cohort-specific → course-level → any active
         try {
           const cohortId = enr?.cohort_id;
           const courseId = enr?.cohort?.course?.id ?? RECORDED_COURSE_ID;
-          const query = supabase.from("ecm_quizzes").select("id").eq("is_active", true);
-          cohortId ? query.eq("cohort_id", cohortId) : query.eq("course_id", courseId);
-          const { data: qz } = await query.maybeSingle();
-          if (qz?.id) setActiveQuizId(qz.id);
+          let quizId: string | null = null;
+
+          if (cohortId) {
+            const { data } = await supabase.from("ecm_quizzes").select("id").eq("is_active", true).eq("cohort_id", cohortId).maybeSingle();
+            quizId = data?.id ?? null;
+          }
+          if (!quizId) {
+            const { data } = await supabase.from("ecm_quizzes").select("id").eq("is_active", true).eq("course_id", courseId).maybeSingle();
+            quizId = data?.id ?? null;
+          }
+          if (!quizId) {
+            const { data } = await supabase.from("ecm_quizzes").select("id").eq("is_active", true).maybeSingle();
+            quizId = data?.id ?? null;
+          }
+          if (quizId) setActiveQuizId(quizId);
         } catch { /* no quiz yet */ }
       } finally {
         setLoading(false);
@@ -445,7 +456,7 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                     >
                       ← Precedente
                     </button>
-                    {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId && (fruitionComplete || !enrollment?.cohort_id) ? (
+                    {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId ? (
                       surveyDone ? (
                         <button
                           onClick={() => setProfileOpen(true)}
