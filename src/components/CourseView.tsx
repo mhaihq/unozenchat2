@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Check, ChevronLeft, Menu, X, Settings, LogOut, Loader2, ClipboardList } from "lucide-react";
 import { EcmQuiz } from "./EcmQuiz";
+import { EcmSurvey } from "./EcmSurvey";
+import { EcmProfile } from "./EcmProfile";
+import { generateCertificate } from "../lib/ecmCertificate";
 import { supabase } from "../lib/supabase";
 import type { Lesson, Subtopic, Enrollment } from "../lib/types";
 import { fetchLessons, fetchMyEnrollment, fetchProgress, markSubtopicComplete, unmarkSubtopicComplete } from "../lib/api";
@@ -58,6 +61,9 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
   const [quizPassed, setQuizPassed] = useState(false);
+  const [surveyOpen, setSurveyOpen] = useState(false);
+  const [surveyDone, setSurveyDone] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -97,11 +103,12 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
             if (enr?.cohort_id) {
               const { data: part } = await supabase
                 .from("ecm_participation")
-                .select("quiz_passed_at")
+                .select("quiz_passed_at, survey_done")
                 .eq("user_id", user.id)
                 .eq("cohort_id", enr.cohort_id)
                 .maybeSingle();
               if (part?.quiz_passed_at) setQuizPassed(true);
+              if (part?.survey_done) setSurveyDone(true);
             }
           }
         } catch { /* progress not critical */ }
@@ -429,18 +436,31 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                       ← Precedente
                     </button>
                     {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId ? (
-                      <button
-                        onClick={() => setQuizOpen(true)}
-                        className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                          quizPassed
-                            ? "bg-green-100 text-green-700 cursor-default"
-                            : "bg-accent text-white hover:bg-accent-deep"
-                        }`}
-                        disabled={quizPassed}
-                      >
-                        <ClipboardList className="w-4 h-4" />
-                        {quizPassed ? "Test superato ✓" : "Fai il test ECM"}
-                      </button>
+                      surveyDone ? (
+                        <button
+                          onClick={() => setProfileOpen(true)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Scarica attestato ECM
+                        </button>
+                      ) : quizPassed ? (
+                        <button
+                          onClick={() => setSurveyOpen(true)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-deep transition-colors"
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Compila questionario qualità →
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setQuizOpen(true)}
+                          className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-accent text-white rounded-md hover:bg-accent-deep transition-colors"
+                        >
+                          <ClipboardList className="w-4 h-4" />
+                          Fai il test ECM
+                        </button>
+                      )
                     ) : (
                       <button
                         onClick={() => nextSubtopic && setActiveSubtopic(nextSubtopic)}
@@ -465,7 +485,34 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
           quizId={activeQuizId}
           cohortId={enrollment?.cohort_id}
           onClose={() => setQuizOpen(false)}
-          onPassed={() => setQuizPassed(true)}
+          onPassed={() => { setQuizPassed(true); setQuizOpen(false); setSurveyOpen(true); }}
+        />
+      )}
+      {surveyOpen && (
+        <EcmSurvey
+          cohortId={enrollment?.cohort_id}
+          onClose={() => setSurveyOpen(false)}
+          onSubmitted={() => { setSurveyDone(true); setSurveyOpen(false); setProfileOpen(true); }}
+        />
+      )}
+      {profileOpen && (
+        <EcmProfile
+          onClose={() => setProfileOpen(false)}
+          onSaved={(profile) => {
+            setProfileOpen(false);
+            generateCertificate({
+              fullName: profile.full_name,
+              codiceFiscale: profile.codice_fiscale,
+              professione: profile.professione,
+              disciplina: profile.disciplina,
+              employment: profile.employment,
+              courseTitle: enrollment?.cohort?.course?.title ?? "AI per Psicologi",
+              cohortName: enrollment?.cohort?.name ?? "4ª Edizione 2026",
+              credits: 8,
+              quizPassedAt: new Date().toISOString(),
+              providerName: "Unozen S.r.l.",
+            });
+          }}
         />
       )}
     </AnimatePresence>
