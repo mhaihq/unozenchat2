@@ -135,6 +135,7 @@ function LessonRow({ lesson, onSaved, onDeleted }: {
   const [focus, setFocus] = useState(lesson.focus ?? "");
   const [videoId, setVideoId] = useState(lesson.default_video_id ?? "");
   const [presentationUrl, setPresentationUrl] = useState(lesson.default_presentation_url ?? "");
+  const [durationMinutes, setDurationMinutes] = useState(lesson.duration_minutes?.toString() ?? "");
   const [saving, setSaving] = useState(false);
   const [addingSubtopic, setAddingSubtopic] = useState(false);
   const [newSubtopicTitle, setNewSubtopicTitle] = useState("");
@@ -143,13 +144,15 @@ function LessonRow({ lesson, onSaved, onDeleted }: {
     if (!title.trim()) return;
     setSaving(true);
     try {
+      const dur = durationMinutes.trim() ? parseInt(durationMinutes.trim(), 10) : null;
       await adminUpdateLesson(lesson.id, {
         title: title.trim(),
         focus: focus.trim() || null,
         default_video_id: videoId.trim() || null,
         default_presentation_url: presentationUrl.trim() || null,
+        duration_minutes: isNaN(dur as number) ? null : dur,
       });
-      onSaved({ ...lesson, title: title.trim(), focus: focus.trim() || null, default_video_id: videoId.trim() || null, default_presentation_url: presentationUrl.trim() || null, subtopics });
+      onSaved({ ...lesson, title: title.trim(), focus: focus.trim() || null, default_video_id: videoId.trim() || null, default_presentation_url: presentationUrl.trim() || null, duration_minutes: dur, subtopics });
       setEditing(false);
     } finally {
       setSaving(false);
@@ -187,9 +190,18 @@ function LessonRow({ lesson, onSaved, onDeleted }: {
               <InlineInput value={videoId} onChange={setVideoId} placeholder="Vimeo video ID" className="flex-1" />
               <InlineInput value={presentationUrl} onChange={setPresentationUrl} placeholder="URL presentazione" className="flex-1" />
             </div>
+            <div className="flex items-center gap-2">
+              <InlineInput
+                value={durationMinutes}
+                onChange={setDurationMinutes}
+                placeholder="Durata (min)"
+                className="w-36"
+              />
+              <span className="text-xs text-grey-500">minuti ECM (Allegato D) — determina la soglia di fruizione</span>
+            </div>
             <SaveCancelButtons
               onSave={save}
-              onCancel={() => { setTitle(lesson.title); setFocus(lesson.focus ?? ""); setVideoId(lesson.default_video_id ?? ""); setPresentationUrl(lesson.default_presentation_url ?? ""); setEditing(false); }}
+              onCancel={() => { setTitle(lesson.title); setFocus(lesson.focus ?? ""); setVideoId(lesson.default_video_id ?? ""); setPresentationUrl(lesson.default_presentation_url ?? ""); setDurationMinutes(lesson.duration_minutes?.toString() ?? ""); setEditing(false); }}
               saving={saving}
             />
           </div>
@@ -201,6 +213,7 @@ function LessonRow({ lesson, onSaved, onDeleted }: {
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               {lesson.default_video_id && <Badge variant="blue"><Video className="w-2.5 h-2.5 mr-1" />Video</Badge>}
+              {lesson.duration_minutes && <Badge variant="green">{lesson.duration_minutes} min</Badge>}
               <Badge>{subtopics.length} arg.</Badge>
               <button onClick={() => setEditing(true)} className="p-1.5 text-grey-400 hover:text-grey-700 rounded-lg hover:bg-grey-100 transition-colors">
                 <Pencil className="w-3.5 h-3.5" />

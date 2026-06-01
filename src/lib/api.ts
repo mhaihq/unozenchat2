@@ -193,7 +193,7 @@ export async function fetchCohorts(courseId: string): Promise<Cohort[]> {
 export async function fetchLessons(courseId: string, cohortId?: string): Promise<Lesson[]> {
   const { data: lessonsRaw, error: le } = await supabase
     .from("lessons")
-    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, duration_minutes, sort_order")
     .eq("course_id", courseId)
     .order("sort_order");
   if (le) throw new Error(le.message);
@@ -371,7 +371,7 @@ export async function adminDeleteCohort(id: string): Promise<void> {
 export async function fetchAllLessonsAdmin(courseId: string): Promise<Lesson[]> {
   const { data: lessonsRaw, error: le } = await supabase
     .from("lessons")
-    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, duration_minutes, sort_order")
     .eq("course_id", courseId)
     .order("sort_order");
   if (le) throw new Error(le.message);
@@ -402,7 +402,7 @@ export async function adminCreateLesson(payload: {
   const { data, error } = await supabase
     .from("lessons")
     .insert({ ...payload, sort_order: payload.sort_order ?? payload.number })
-    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, sort_order")
+    .select("id, course_id, number, title, focus, default_video_id, default_presentation_url, duration_minutes, sort_order")
     .single();
   if (error) throw new Error(error.message);
   return { ...data, subtopics: [] } as Lesson;

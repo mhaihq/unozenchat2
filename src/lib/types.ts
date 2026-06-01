@@ -48,6 +48,7 @@ export interface Lesson {
   default_video_id: string | null;
   default_video_hash: string | null;
   default_presentation_url: string | null;
+  duration_minutes: number | null;
   sort_order: number;
   subtopics: Subtopic[];
   // resolved from cohort_lessons when enrolled in a live cohort
