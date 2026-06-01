@@ -6,6 +6,7 @@ import type { Document, UploadStatus } from "../lib/types";
 import { uploadDocument, deleteDocument, updateAdminPassword, fetchAllowedEmails, addAllowedEmail, removeAllowedEmail } from "../lib/api";
 import { AdminCourses } from "./AdminCourses";
 import { AdminQuiz } from "./AdminQuiz";
+import { AdminExport } from "./AdminExport";
 
 interface Props {
   documents: Document[];
@@ -37,7 +38,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [tab, setTab] = useState<"corsi" | "quiz" | "materials" | "accessi" | "settings">("corsi");
+  const [tab, setTab] = useState<"corsi" | "quiz" | "export" | "materials" | "accessi" | "settings">("corsi");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -188,7 +189,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
 
         {/* Tabs */}
         <div className="flex border-b border-grey-200 mb-6">
-          {(["corsi", "quiz", "materials", "accessi", "settings"] as const).map((t) => (
+          {(["corsi", "quiz", "export", "materials", "accessi", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -198,7 +199,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
                   : "border-transparent text-grey-500 hover:text-grey-800"
               }`}
             >
-              {t === "corsi" ? "Corsi" : t === "quiz" ? "Quiz ECM" : t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
+              {t === "corsi" ? "Corsi" : t === "quiz" ? "Quiz ECM" : t === "export" ? "Export COGEAPS" : t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
             </button>
           ))}
         </div>
@@ -209,6 +210,10 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
 
         {tab === "quiz" && (
           <AdminQuiz />
+        )}
+
+        {tab === "export" && (
+          <AdminExport />
         )}
 
         {tab === "materials" && (

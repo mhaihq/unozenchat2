@@ -5,6 +5,7 @@ import { EcmQuiz } from "./EcmQuiz";
 import { EcmSurvey } from "./EcmSurvey";
 import { EcmProfile } from "./EcmProfile";
 import { generateCertificate } from "../lib/ecmCertificate";
+import { useFruitionTracker } from "../hooks/useFruitionTracker";
 import { supabase } from "../lib/supabase";
 import type { Lesson, Subtopic, Enrollment } from "../lib/types";
 import { fetchLessons, fetchMyEnrollment, fetchProgress, markSubtopicComplete, unmarkSubtopicComplete } from "../lib/api";
@@ -64,6 +65,14 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [surveyDone, setSurveyDone] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [fruitionComplete, setFruitionComplete] = useState(false);
+
+  const { isFruited } = useFruitionTracker({
+    activeLessonId: activeLesson?.id ?? null,
+    cohortId: enrollment?.cohort_id,
+    lessons: lessons,
+    onAllFruited: () => setFruitionComplete(true),
+  });
 
   useEffect(() => {
     async function load() {
@@ -103,12 +112,13 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
             if (enr?.cohort_id) {
               const { data: part } = await supabase
                 .from("ecm_participation")
-                .select("quiz_passed_at, survey_done")
+                .select("quiz_passed_at, survey_done, fruition_complete")
                 .eq("user_id", user.id)
                 .eq("cohort_id", enr.cohort_id)
                 .maybeSingle();
               if (part?.quiz_passed_at) setQuizPassed(true);
               if (part?.survey_done) setSurveyDone(true);
+              if (part?.fruition_complete) setFruitionComplete(true);
             }
           }
         } catch { /* progress not critical */ }
@@ -435,7 +445,7 @@ export function CourseView({ displayName, userAvatar: _userAvatar, onAdmin, onSi
                     >
                       ← Precedente
                     </button>
-                    {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId ? (
+                    {!nextSubtopic && totalCompleted >= totalSubtopics && activeQuizId && (fruitionComplete || !enrollment?.cohort_id) ? (
                       surveyDone ? (
                         <button
                           onClick={() => setProfileOpen(true)}
