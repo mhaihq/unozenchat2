@@ -1,19 +1,16 @@
 import { useState, useRef, useCallback } from "react";
 import { EDGE_FUNCTION_URL, supabase } from "../lib/supabase";
 
-async function fetchEphemeralToken(instructions: string): Promise<string> {
+async function fetchVoiceKey(): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
   const authToken = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
-  const res = await fetch(`${EDGE_FUNCTION_URL}/realtime-token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${authToken}` },
-    body: JSON.stringify({ instructions, voice: "alloy", model: "gpt-realtime-2" }),
+  const res = await fetch(`${EDGE_FUNCTION_URL}/voice-key`, {
+    headers: { Authorization: `Bearer ${authToken}` },
   });
-  if (!res.ok) throw new Error(`Token fetch failed: ${await res.text()}`);
+  if (!res.ok) throw new Error(`voice-key fetch failed: ${await res.text()}`);
   const data = await res.json();
-  const token = data?.client_secret?.value;
-  if (!token) throw new Error("No ephemeral token in response");
-  return token;
+  if (!data.key) throw new Error("No key returned");
+  return data.key;
 }
 
 export type VoiceState = "idle" | "connecting" | "listening" | "speaking" | "error";
@@ -106,20 +103,20 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     setAssistantTranscript("");
     setUserTranscript("");
 
-    let ephemeralToken: string;
+    let apiKey: string;
     try {
-      console.log("[Voice] Fetching ephemeral token…");
-      ephemeralToken = await fetchEphemeralToken(systemPrompt);
-      console.log("[Voice] Token OK, opening WebSocket…");
+      console.log("[Voice] Fetching voice key…");
+      apiKey = await fetchVoiceKey();
+      console.log("[Voice] Key OK, opening WebSocket…");
     } catch (err) {
-      console.error("[Voice] Token fetch failed:", err);
+      console.error("[Voice] Key fetch failed:", err);
       setVoiceState("error");
       return;
     }
 
     const ws = new WebSocket(WS_URL, [
       "realtime",
-      `openai-insecure-api-key.${ephemeralToken}`,
+      `openai-insecure-api-key.${apiKey}`,
     ]);
     wsRef.current = ws;
 

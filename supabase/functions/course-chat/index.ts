@@ -304,6 +304,21 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // GET /voice-key - Returns OpenAI key to authenticated users for WebSocket voice
+    if (path === "/voice-key" && req.method === "GET") {
+      const { data: { user } } = await supabase.auth.getUser(
+        req.headers.get("Authorization")?.replace("Bearer ", "") ?? ""
+      );
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ key: OPENAI_API_KEY }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // POST /quiz-submit - Server-side quiz scoring (is_correct never sent to client)
     if (path === "/quiz-submit" && req.method === "POST") {
       const { data: { user } } = await supabase.auth.getUser(
