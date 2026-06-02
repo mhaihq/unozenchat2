@@ -108,9 +108,11 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
 
     let ephemeralToken: string;
     try {
+      console.log("[Voice] Fetching ephemeral token…");
       ephemeralToken = await fetchEphemeralToken(systemPrompt);
+      console.log("[Voice] Token OK, opening WebSocket…");
     } catch (err) {
-      console.error("Failed to get ephemeral token:", err);
+      console.error("[Voice] Token fetch failed:", err);
       setVoiceState("error");
       return;
     }
@@ -125,12 +127,12 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
     nextPlayTimeRef.current = 0;
 
     ws.onopen = async () => {
+      console.log("[Voice] WebSocket opened, sending session.update");
       ws.send(JSON.stringify({
         type: "session.update",
         session: {
           type: "realtime",
           instructions: systemPrompt,
-          turn_detection: { silence_duration_ms: 800 },
         },
       }));
 
@@ -163,8 +165,10 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
         processor.connect(silentGain);
         silentGain.connect(ctx.destination);
 
+        console.log("[Voice] Mic started, state → listening");
         setVoiceState("listening");
-      } catch {
+      } catch (micErr) {
+        console.error("[Voice] Mic error:", micErr);
         setVoiceState("error");
         ws.close();
       }
@@ -172,6 +176,9 @@ export function useRealtimeVoice(options: UseRealtimeVoiceOptions = {}) {
 
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
+      if (msg.type !== "input_audio_buffer.speech_started" && msg.type !== "response.output_audio.delta") {
+        console.log("[Voice] msg:", msg.type, msg.error ?? "");
+      }
 
       switch (msg.type) {
         case "response.output_audio.delta":
