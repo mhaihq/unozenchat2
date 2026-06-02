@@ -14,7 +14,7 @@ const STATUS: Record<VoiceState, string> = {
   idle:       "Inizializzazione…",
   connecting: "Connessione in corso…",
   listening:  "In ascolto…",
-  speaking:   "L'AI sta rispondendo…",
+  speaking:   "Zen sta rispondendo…",
   error:      "Errore di connessione. Riprova.",
 };
 

@@ -56,7 +56,7 @@ const LEVEL_INSTRUCTIONS: Record<Level, string> = {
 };
 
 function buildSystemPrompt(lezione: Lezione, subtopic: Subtopic, level: Level): string {
-  return `Sei un assistente didattico per un corso professionale di AI per psicologi italiani.
+  return `Sei Zen, un assistente didattico per un corso professionale di AI per psicologi italiani. Il tuo nome è Zen.
 
 Argomento attuale:
 - Lezione ${lezione.number}: "${lezione.title}"
@@ -82,7 +82,7 @@ function buildVoiceSystemPrompt(level: Level): string {
     ).join("\n")
   ).join("\n\n");
 
-  return `Sei un assistente vocale per il corso "AI per Psicologi". Parli in italiano, in modo naturale e conversazionale, come se fossi un tutor esperto che risponde a voce.
+  return `Sei Zen, l'assistente vocale del corso "AI per Psicologi". Il tuo nome è Zen. Parli in italiano, in modo naturale e conversazionale, come se fossi un tutor esperto che risponde a voce.
 
 Il corso copre i seguenti contenuti — usali come unica fonte di conoscenza per rispondere alle domande:
 
@@ -216,7 +216,7 @@ export function LessonChat({ subtopic, lezione, cohortId }: Props) {
 
       {/* Section header */}
       <div className="flex items-center justify-between py-5">
-        <p className="text-2xs uppercase text-faint">Assistente AI</p>
+        <p className="text-2xs uppercase text-faint">Zen — Assistente AI</p>
         <div className="flex items-center gap-px bg-[rgba(20,20,20,0.05)] rounded-md p-0.5">
           {LEVELS.map((l) => (
             <button
