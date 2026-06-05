@@ -482,3 +482,59 @@ export async function adminEnrollUserByEmail(cohortId: string, email: string, ad
 export async function adminRemoveEnrollment(enrollmentId: string, adminPassword: string): Promise<void> {
   await callAdminOps("remove_enrollment", adminPassword, { enrollmentId });
 }
+
+// ─── Usage analytics ───────────────────────────────────────────────────────────
+
+export interface UsageStats {
+  generatedAt: string;
+  windowDays: number;
+  totals: {
+    totalUsers: number;
+    activeUsers: number;
+    enrollments: number;
+    cohorts: number;
+  };
+  ai: {
+    sessions: number;
+    userMessages: number;
+    assistantMessages: number;
+    perUserAttributable: boolean;
+    topUsers: { email: string; messages: number }[];
+  };
+  engagement: {
+    eventTypeCounts: Record<string, number>;
+    trend: { date: string; messages: number; activeUsers: number }[];
+  };
+  completion: {
+    totalSubtopics: number;
+    usersWithProgress: number;
+    totalCompletions: number;
+  };
+  quiz: {
+    attempts: number;
+    distinctTakers: number;
+    passed: number;
+    passRate: number | null;
+    avgScore: number | null;
+  };
+  compliance: {
+    attestatiIssued: number;
+    rows: {
+      user_id: string;
+      name: string | null;
+      email: string | null;
+      cohort: string | null;
+      fruition_complete: boolean;
+      quiz_passed: boolean;
+      survey_done: boolean;
+      attestato_issued: boolean;
+      credits: number | null;
+      ai_messages: number;
+      subtopics_done: number;
+    }[];
+  };
+}
+
+export async function fetchUsageStats(adminPassword: string): Promise<UsageStats> {
+  return callAdminOps("usage_stats", adminPassword, {}) as Promise<UsageStats>;
+}

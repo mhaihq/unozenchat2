@@ -7,6 +7,7 @@ import { uploadDocument, deleteDocument, updateAdminPassword, fetchAllowedEmails
 import { AdminCourses } from "./AdminCourses";
 import { AdminQuiz } from "./AdminQuiz";
 import { AdminExport } from "./AdminExport";
+import { AdminUsage } from "./AdminUsage";
 
 interface Props {
   documents: Document[];
@@ -38,7 +39,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [tab, setTab] = useState<"corsi" | "quiz" | "export" | "materials" | "accessi" | "settings">("corsi");
+  const [tab, setTab] = useState<"utilizzo" | "corsi" | "quiz" | "export" | "materials" | "accessi" | "settings">("utilizzo");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwStatus, setPwStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -189,7 +190,7 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
 
         {/* Tabs */}
         <div className="flex border-b border-grey-200 mb-6">
-          {(["corsi", "quiz", "export", "materials", "accessi", "settings"] as const).map((t) => (
+          {(["utilizzo", "corsi", "quiz", "export", "materials", "accessi", "settings"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -199,10 +200,14 @@ export function AdminPanel({ documents, onDocumentsChange, onLogout, adminPasswo
                   : "border-transparent text-grey-500 hover:text-grey-800"
               }`}
             >
-              {t === "corsi" ? "Corsi" : t === "quiz" ? "Quiz ECM" : t === "export" ? "Export COGEAPS" : t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
+              {t === "utilizzo" ? "Utilizzo" : t === "corsi" ? "Corsi" : t === "quiz" ? "Quiz ECM" : t === "export" ? "Export COGEAPS" : t === "materials" ? "Materiali" : t === "accessi" ? "Accessi" : "Impostazioni"}
             </button>
           ))}
         </div>
+
+        {tab === "utilizzo" && (
+          <AdminUsage adminPassword={adminPassword} />
+        )}
 
         {tab === "corsi" && (
           <AdminCourses adminPassword={adminPassword} />
