@@ -296,7 +296,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
 
       {/* ── CORSI ── */}
       <section id="corsi" style={{ background: SURFACE2, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-20">
-        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 1040 }}>
           <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}
             className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-10">
             <div>
@@ -307,116 +307,140 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             </div>
             <p style={{ fontSize: 13, color: FAINT, fontFamily: "monospace" }}>3 percorsi · due obiettivi</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
 
-          {/* AI Literacy & AI Act card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }}
-            style={{ background: WHITE, borderRadius: 20, border: `1px solid ${BORDER}`, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
-            <div style={{ background: "linear-gradient(135deg, #E89968 0%, #D97B4A 100%)", height: 8 }} />
-            <div style={{ padding: "clamp(24px,4vw,36px)", flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C25E32", fontFamily: "monospace" }}>Conformità</span>
-                <span style={{ background: "rgba(217,123,74,0.12)", border: "1px solid rgba(217,123,74,0.3)", borderRadius: 999, fontSize: 11, fontFamily: "monospace", padding: "3px 10px", color: "#C25E32" }}>Conforme Art. 4</span>
-              </div>
-              <h2 className="font-serif" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 14 }}>
-                AI Literacy<br /><em style={{ fontStyle: "italic" }}>& AI Act</em>
-              </h2>
-              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, marginBottom: 24, flex: 1 }}>
-                Formazione documentabile per mettere in regola la tua professione. Attestato incluso. Aperto a tutti gli operatori sanitari, non solo agli psicologi. ECM in accreditamento.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 28 }}>
-                {["Art. 4 AI Act", "8 ore", "Operatori sanitari", "Attestato", "ECM in arrivo"].map(tag => (
-                  <span key={tag} style={{ background: SURFACE2, border: `1px solid ${BORDER}`, color: MUTED, borderRadius: 999, fontSize: 11, padding: "3px 10px", fontFamily: "monospace" }}>{tag}</span>
-                ))}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 20, borderTop: `1px solid ${BORDER}` }}>
-                <div>
-                  <div style={{ fontSize: 11, color: FAINT, fontFamily: "monospace", marginBottom: 2 }}>Obbligo Art. 4</div>
-                  <span className="font-serif" style={{ fontSize: 22, fontWeight: 400, color: NAVY, lineHeight: 1 }}>8 ore</span>
-                </div>
-                <a href="#b2b"
-                  style={{ background: NAVY, color: "#fff", border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "opacity 0.15s", display: "inline-flex", alignItems: "center", gap: 7, textDecoration: "none" }}
-                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")} onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
-                  Richiedi info <span>→</span>
-                </a>
-              </div>
-            </div>
-          </motion.div>
+          <div className="flex flex-col gap-5 md:gap-6">
+            {[
+              {
+                dark: false,
+                accent: "linear-gradient(180deg, #E89968 0%, #D97B4A 100%)",
+                eyebrow: "Conformità",
+                eyebrowColor: "#C25E32",
+                badge: "Conforme Art. 4",
+                badgeStyle: { background: "rgba(217,123,74,0.12)", border: "1px solid rgba(217,123,74,0.3)", color: "#C25E32" },
+                title: "AI Literacy & AI Act",
+                desc: "Formazione documentabile per mettere in regola la tua professione. Attestato incluso. Aperto a tutti gli operatori sanitari, non solo agli psicologi. ECM in accreditamento.",
+                tags: ["8 ore", "Operatori sanitari", "Attestato", "ECM in arrivo"],
+                metaLabel: "Obbligo Art. 4",
+                metaValue: "8 ore",
+                cta: { label: "Richiedi info", href: "#b2b", variant: "dark" as const },
+              },
+              {
+                dark: false,
+                accent: "linear-gradient(180deg, #E89968 0%, #CFC9E8 100%)",
+                eyebrow: "On-demand",
+                eyebrowColor: FAINT,
+                badge: "4 moduli · 16 ore",
+                badgeStyle: { background: SURFACE2, border: `1px solid ${BORDER}`, color: MUTED },
+                title: "AI per Psicologi · On-demand",
+                desc: "Guarda quando vuoi. AI tutor incluso 24/7. Esercitazioni vocali, community privata e libreria di prompt clinici. Accesso 12 mesi.",
+                tags: ["AI Tutor 24/7", "Chat & voce", "16 ore video", "Community", "Prompt clinici"],
+                priceOld: "€420",
+                priceNew: "€297",
+                cta: { label: "Scopri il corso", onClick: onCourseOndemand, variant: "lime" as const },
+              },
+              {
+                dark: true,
+                accent: `linear-gradient(180deg, ${LIME} 0%, #A8D14F 100%)`,
+                eyebrow: "Dal vivo",
+                eyebrowColor: "rgba(255,255,255,0.35)",
+                badge: "Posti limitati",
+                badgeStyle: { background: "rgba(200,233,118,0.15)", border: "1px solid rgba(200,233,118,0.3)", color: LIME },
+                title: "AI per Psicologi · Live",
+                desc: "Sessioni dal vivo in gruppo ristretto (max 30 partecipanti). Interazione diretta, registrazioni esclusive e AI tutor calibrato sulle tue sessioni.",
+                tags: ["Sessioni live", "Max 30 posti", "Registrazioni", "AI Tutor", "Gruppo ristretto"],
+                metaLabel: "Prossima edizione",
+                metaValue: "Giugno 2026",
+                cta: { label: "Scopri il corso", onClick: onCourseLive, variant: "lime" as const },
+              },
+            ].map((c, i) => {
+              const txMain = c.dark ? "#fff" : NAVY;
+              const txBody = c.dark ? "rgba(255,255,255,0.65)" : MUTED;
+              const txFaint = c.dark ? "rgba(255,255,255,0.4)" : FAINT;
+              const divider = c.dark ? "1px solid rgba(255,255,255,0.12)" : `1px solid ${BORDER}`;
+              return (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
+                  style={{
+                    background: c.dark ? NAVY : WHITE,
+                    borderRadius: 20,
+                    border: c.dark ? "1px solid rgba(255,255,255,0.08)" : `1px solid ${BORDER}`,
+                    overflow: "hidden",
+                    boxShadow: c.dark ? "0 4px 24px rgba(0,0,0,0.18)" : "0 4px 24px rgba(0,0,0,0.06)",
+                  }}
+                  className="flex flex-col md:flex-row">
 
-          {/* On-demand card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }}
-            style={{ background: WHITE, borderRadius: 20, border: `1px solid ${BORDER}`, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
-            {/* Card top band */}
-            <div style={{ background: "linear-gradient(135deg, #E89968 0%, #CFC9E8 100%)", height: 8 }} />
-            <div style={{ padding: "clamp(24px,4vw,36px)", flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>On-demand</span>
-                <span style={{ background: SURFACE2, borderRadius: 999, fontSize: 11, fontFamily: "monospace", padding: "3px 10px", color: MUTED }}>4 moduli · 16 ore</span>
-              </div>
-              <h2 className="font-serif" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 14 }}>
-                AI per Psicologi<br /><em style={{ fontStyle: "italic" }}>On-demand</em>
-              </h2>
-              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, marginBottom: 24, flex: 1 }}>
-                Guarda quando vuoi. AI tutor incluso 24/7. Esercitazioni vocali, community privata e libreria di prompt clinici. Accesso 12 mesi.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 28 }}>
-                {["AI Tutor 24/7", "Chat & voce", "16 ore video", "Community", "Prompt clinici"].map(tag => (
-                  <span key={tag} style={{ background: SURFACE2, border: `1px solid ${BORDER}`, color: MUTED, borderRadius: 999, fontSize: 11, padding: "3px 10px", fontFamily: "monospace" }}>{tag}</span>
-                ))}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 20, borderTop: `1px solid ${BORDER}` }}>
-                <div>
-                  <span style={{ fontSize: 12, textDecoration: "line-through", color: FAINT, fontFamily: "monospace" }}>€420</span>
-                  <span className="font-serif" style={{ fontSize: 28, fontWeight: 500, color: NAVY, marginLeft: 8, lineHeight: 1 }}>€297</span>
-                </div>
-                <button
-                  onClick={onCourseOndemand}
-                  style={{ background: LIME, color: NAVY, border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 7 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
-                  Scopri il corso <span>→</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
+                  {/* Accent rail (left on desktop, top on mobile) */}
+                  <div style={{ background: c.accent }} className="h-2 md:h-auto md:w-2 flex-shrink-0" />
 
-          {/* Live card */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }}
-            style={{ background: NAVY, borderRadius: 20, border: `1px solid rgba(255,255,255,0.08)`, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.18)", display: "flex", flexDirection: "column" }}>
-            <div style={{ background: `linear-gradient(135deg, ${LIME} 0%, #A8D14F 100%)`, height: 8 }} />
-            <div style={{ padding: "clamp(24px,4vw,36px)", flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>Dal vivo</span>
-                <span style={{ background: "rgba(200,233,118,0.15)", borderRadius: 999, fontSize: 11, fontFamily: "monospace", padding: "3px 10px", color: LIME, border: "1px solid rgba(200,233,118,0.3)" }}>Posti limitati</span>
-              </div>
-              <h2 className="font-serif" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: "#fff", marginBottom: 14 }}>
-                AI per Psicologi<br /><em style={{ fontStyle: "italic", color: LIME }}>Live</em>
-              </h2>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.7, marginBottom: 24, flex: 1 }}>
-                Sessioni dal vivo in gruppo ristretto (max 30 partecipanti). Interazione diretta, registrazioni esclusive e AI tutor calibrato sulle tue sessioni.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 28 }}>
-                {["Sessioni live", "Max 30 posti", "Registrazioni", "AI Tutor", "Gruppo ristretto"].map(tag => (
-                  <span key={tag} style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", borderRadius: 999, fontSize: 11, padding: "3px 10px", fontFamily: "monospace" }}>{tag}</span>
-                ))}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "monospace", marginBottom: 2 }}>Prossima edizione</div>
-                  <span className="font-serif" style={{ fontSize: 22, fontWeight: 400, color: "#fff", lineHeight: 1 }}>Giugno 2026</span>
-                </div>
-                <button
-                  onClick={onCourseLive}
-                  style={{ background: LIME, color: NAVY, border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 7 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
-                  Scopri il corso <span>→</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
+                  {/* Main content */}
+                  <div style={{ padding: "clamp(22px,3.2vw,34px)" }} className="flex-1 flex flex-col">
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: c.eyebrowColor, fontFamily: "monospace" }}>{c.eyebrow}</span>
+                      <span style={{ ...c.badgeStyle, borderRadius: 999, fontSize: 11, fontFamily: "monospace", padding: "3px 10px" }}>{c.badge}</span>
+                    </div>
+                    <h3 className="font-serif" style={{ fontSize: "clamp(1.4rem,2.6vw,1.9rem)", fontWeight: 400, lineHeight: 1.12, letterSpacing: "-0.02em", color: txMain, marginBottom: 12 }}>
+                      {c.title}
+                    </h3>
+                    <p style={{ fontSize: 14, color: txBody, lineHeight: 1.7, marginBottom: 18, maxWidth: "62ch" }}>
+                      {c.desc}
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: "auto" }}>
+                      {c.tags.map(tag => (
+                        <span key={tag} style={{
+                          background: c.dark ? "rgba(255,255,255,0.07)" : SURFACE2,
+                          border: c.dark ? "1px solid rgba(255,255,255,0.12)" : `1px solid ${BORDER}`,
+                          color: c.dark ? "rgba(255,255,255,0.55)" : MUTED,
+                          borderRadius: 999, fontSize: 11, padding: "3px 10px", fontFamily: "monospace",
+                        }}>{tag}</span>
+                      ))}
+                    </div>
+                  </div>
 
+                  {/* Price / CTA panel (right on desktop, bottom on mobile) */}
+                  <div style={{
+                    borderTop: divider,
+                    padding: "clamp(22px,3.2vw,34px)",
+                    background: c.dark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.015)",
+                  }}
+                    className="md:border-t-0 md:border-l flex flex-row md:flex-col items-center md:items-start justify-between gap-4 md:justify-center md:w-56 flex-shrink-0">
+                    <div className="md:mb-2">
+                      {c.priceNew ? (
+                        <div className="flex items-baseline gap-2 md:flex-col md:items-start md:gap-0">
+                          {c.priceOld && <span style={{ fontSize: 12, textDecoration: "line-through", color: txFaint, fontFamily: "monospace" }}>{c.priceOld}</span>}
+                          <span className="font-serif" style={{ fontSize: 30, fontWeight: 500, color: txMain, lineHeight: 1 }}>{c.priceNew}</span>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: 11, color: txFaint, fontFamily: "monospace", marginBottom: 3 }}>{c.metaLabel}</div>
+                          <span className="font-serif" style={{ fontSize: 22, fontWeight: 400, color: txMain, lineHeight: 1 }}>{c.metaValue}</span>
+                        </div>
+                      )}
+                    </div>
+                    {c.cta.href ? (
+                      <a href={c.cta.href}
+                        style={{
+                          background: c.cta.variant === "lime" ? LIME : NAVY, color: c.cta.variant === "lime" ? NAVY : "#fff",
+                          border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                          transition: "opacity 0.15s, background 0.15s", display: "inline-flex", alignItems: "center", gap: 7, textDecoration: "none", whiteSpace: "nowrap",
+                        }}
+                        className="md:w-full md:justify-center"
+                        onMouseEnter={e => { if (c.cta.variant === "lime") e.currentTarget.style.background = LIME_D; else e.currentTarget.style.opacity = "0.85"; }}
+                        onMouseLeave={e => { if (c.cta.variant === "lime") e.currentTarget.style.background = LIME; else e.currentTarget.style.opacity = "1"; }}>
+                        {c.cta.label} <span>→</span>
+                      </a>
+                    ) : (
+                      <button onClick={c.cta.onClick}
+                        style={{ background: LIME, color: NAVY, border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}
+                        className="md:w-full md:justify-center"
+                        onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
+                        {c.cta.label} <span>→</span>
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
