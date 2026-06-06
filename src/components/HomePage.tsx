@@ -195,8 +195,16 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
   return (
     <div className="min-h-screen font-sans" style={{ background: BG, color: NAVY }}>
 
+      {/* AI Act compliance bar */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 51, background: "#C25E32", color: "#fff", borderBottom: "1px solid rgba(0,0,0,0.12)" }}
+        className="flex items-center justify-center px-5 md:px-10 text-center" >
+        <p style={{ fontSize: 12, lineHeight: 1.35, fontWeight: 500, padding: "7px 0" }}>
+          <strong style={{ fontWeight: 700 }}>Art. 4 AI Act:</strong> l'obbligo di formazione è già in vigore. I controlli partono ad agosto 2026.
+        </p>
+      </div>
+
       {/* Nav */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: "rgba(242,238,227,0.92)", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BORDER}`, height: 64 }}
+      <nav style={{ position: "fixed", top: 34, left: 0, right: 0, zIndex: 50, background: "rgba(242,238,227,0.92)", backdropFilter: "blur(14px)", borderBottom: `1px solid ${BORDER}`, height: 64 }}
         className="flex items-center justify-between px-5 md:px-10">
         <img src={LOGO} alt="Unozen" style={{ height: 26, width: "auto", objectFit: "contain" }} />
 
@@ -243,14 +251,14 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.06 }}
             className="font-serif"
             style={{ fontSize: "clamp(2.4rem,6vw,5rem)", fontWeight: 500, lineHeight: 1.06, letterSpacing: "-0.03em", color: NAVY, marginBottom: 20 }}>
-            Intelligenza <em style={{ fontStyle: "italic", fontWeight: 400 }}>Artificiale.</em><br />
-            Spiegata semplice.
+            Intelligenza <em style={{ fontStyle: "italic", fontWeight: 400 }}>artificiale</em><br />
+            per professionisti della salute.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.18 }}
-            style={{ fontSize: "clamp(15px,2vw,17px)", color: MUTED, lineHeight: 1.65, maxWidth: "52ch", margin: "0 auto 36px" }}>
-            Scegli il formato che fa per te — on-demand al tuo ritmo,<br className="hidden sm:block" />
-            o dal vivo con un gruppo ristretto.
+            style={{ fontSize: "clamp(15px,2vw,17px)", color: MUTED, lineHeight: 1.65, maxWidth: "56ch", margin: "0 auto 36px" }}>
+            Fatta da clinici che usano questi strumenti ogni giorno.<br className="hidden sm:block" />
+            Pratica, conforme all'AI Act, con AI Tutor incluso.
           </motion.p>
 
           {/* Video */}
@@ -268,7 +276,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${BORDER}`, background: WHITE, boxShadow: "0 2px 20px rgba(0,0,0,0.05)", textAlign: "left" }}>
             {[
               { value: "4.9 / 5", label: "Valutazione media", sub: "★★★★★  basata su oltre 200 iscritti" },
-              { value: "200+",    label: "Professionisti formati", sub: "Psicologi, psicoterapeuti, ricercatori" },
+              { value: "200+",    label: "Professionisti formati", sub: "Psicologi, operatori sanitari, insegnanti" },
               { value: "100%",    label: "Conforme GDPR", sub: "Dati elaborati in Europa · AI in italiano" },
             ].map((stat, i) => (
               <div key={i} style={{
@@ -294,12 +302,47 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             <div>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace" }}>I nostri corsi</span>
               <h2 className="font-serif" style={{ fontSize: "clamp(1.6rem,3.5vw,2.4rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.025em", color: NAVY, marginTop: 10 }}>
-                Scegli il tuo <em style={{ fontStyle: "italic", fontWeight: 400 }}>formato.</em>
+                I <em style={{ fontStyle: "italic", fontWeight: 400 }}>corsi.</em>
               </h2>
             </div>
-            <p style={{ fontSize: 13, color: FAINT, fontFamily: "monospace" }}>2 percorsi · stesso programma</p>
+            <p style={{ fontSize: 13, color: FAINT, fontFamily: "monospace" }}>3 percorsi · due obiettivi</p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
+
+          {/* AI Literacy & AI Act card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }}
+            style={{ background: WHITE, borderRadius: 20, border: `1px solid ${BORDER}`, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column" }}>
+            <div style={{ background: "linear-gradient(135deg, #E89968 0%, #D97B4A 100%)", height: 8 }} />
+            <div style={{ padding: "clamp(24px,4vw,36px)", flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C25E32", fontFamily: "monospace" }}>Conformità</span>
+                <span style={{ background: "rgba(217,123,74,0.12)", border: "1px solid rgba(217,123,74,0.3)", borderRadius: 999, fontSize: 11, fontFamily: "monospace", padding: "3px 10px", color: "#C25E32" }}>Conforme Art. 4</span>
+              </div>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.5rem,3vw,2rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 14 }}>
+                AI Literacy<br /><em style={{ fontStyle: "italic" }}>& AI Act</em>
+              </h2>
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, marginBottom: 24, flex: 1 }}>
+                Formazione documentabile per mettere in regola la tua professione. Attestato incluso. Aperto a tutti gli operatori sanitari, non solo agli psicologi. ECM in accreditamento.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 28 }}>
+                {["Art. 4 AI Act", "8 ore", "Operatori sanitari", "Attestato", "ECM in arrivo"].map(tag => (
+                  <span key={tag} style={{ background: SURFACE2, border: `1px solid ${BORDER}`, color: MUTED, borderRadius: 999, fontSize: 11, padding: "3px 10px", fontFamily: "monospace" }}>{tag}</span>
+                ))}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 20, borderTop: `1px solid ${BORDER}` }}>
+                <div>
+                  <div style={{ fontSize: 11, color: FAINT, fontFamily: "monospace", marginBottom: 2 }}>Obbligo Art. 4</div>
+                  <span className="font-serif" style={{ fontSize: 22, fontWeight: 400, color: NAVY, lineHeight: 1 }}>8 ore</span>
+                </div>
+                <a href="#b2b"
+                  style={{ background: NAVY, color: "#fff", border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "opacity 0.15s", display: "inline-flex", alignItems: "center", gap: 7, textDecoration: "none" }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")} onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
+                  Richiedi info <span>→</span>
+                </a>
+              </div>
+            </div>
+          </motion.div>
 
           {/* On-demand card */}
           <motion.div
@@ -388,7 +431,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             <motion.div initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: LIME, fontFamily: "monospace", display: "inline-block", marginBottom: 20 }}>AI Tutor — incluso per sempre</span>
               <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,3rem)", fontWeight: 400, lineHeight: 1.1, letterSpacing: "-0.02em", color: "#fff", marginBottom: 20 }}>
-                Un tutor che conosce<br />il corso <em style={{ fontStyle: "italic", color: LIME }}>a memoria.</em>
+                Il tuo tutor personale.<br /><em style={{ fontStyle: "italic", color: LIME }}>Sempre disponibile.</em>
               </h2>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", lineHeight: 1.75, marginBottom: 36 }}>
                 Non è un chatbot generico. È addestrato sui contenuti del corso — video, trascrizioni, materiali — e risponde ai tuoi dubbi specifici in italiano, 24 ore su 24, per sempre.
@@ -540,14 +583,14 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             <motion.div initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", display: "inline-block", border: `1px solid ${BORDER}`, borderRadius: 999, padding: "4px 12px", marginBottom: 24 }}>Chi siamo</span>
               <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 36 }}>
-                La migliore piattaforma<br />di formazione AI per<br /><em style={{ fontStyle: "italic", fontWeight: 400 }}>professionisti.</em>
+                Costruita da clinici,<br />per <em style={{ fontStyle: "italic", fontWeight: 400 }}>clinici.</em>
               </h2>
 
               <div className="flex flex-col gap-6">
                 {[
                   {
                     name: "Alessandro Lombardo",
-                    bio: "Co-fondatore Unozen. Psicologo e Psicoterapeuta. Ho fondato e diretto, fino a maggio 2026, la più grande comunità di apprendimento per psicologi in Italia. Lavoro come psicoterapeuta a Torino.",
+                    bio: "Co-fondatore Unozen. Psicologo e Psicoterapeuta. Ho fondato la più grande comunità di apprendimento per psicologi in Italia. Lavoro come psicoterapeuta a Torino.",
                   },
                   {
                     name: "Matteo Grassi",
@@ -566,6 +609,31 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             </motion.div>
 
           </div>
+        </div>
+      </section>
+
+      {/* B2B / Enterprise */}
+      <section id="b2b" style={{ background: NAVY, position: "relative", overflow: "hidden" }} className="py-16 md:py-24">
+        <div style={{ position: "absolute", top: "30%", right: "20%", width: 600, height: 400, background: "radial-gradient(ellipse, rgba(200,233,118,0.08) 0%, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div className="relative mx-auto px-5 md:px-10" style={{ maxWidth: 960, zIndex: 1 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
+            className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+            <div style={{ maxWidth: "60ch" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: LIME, fontFamily: "monospace", display: "inline-block", marginBottom: 18 }}>Per le strutture</span>
+              <h2 className="font-serif" style={{ fontSize: "clamp(1.6rem,3.5vw,2.6rem)", fontWeight: 400, lineHeight: 1.12, letterSpacing: "-0.02em", color: "#fff", marginBottom: 16 }}>
+                Sei una struttura sanitaria<br />o uno studio <em style={{ fontStyle: "italic", color: LIME }}>associato?</em>
+              </h2>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>
+                Acquista licenze per il tuo team. Formazione conforme all'AI Act, attestati per ogni operatore e gestione centralizzata degli accessi.
+              </p>
+            </div>
+            <a href="mailto:info@unozen.it?subject=Licenze%20team%20%E2%80%94%20Unozen"
+              style={{ background: LIME, color: NAVY, border: "none", borderRadius: 999, padding: "14px 28px", fontSize: 15, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}
+              onMouseEnter={e => (e.currentTarget.style.background = LIME_D)} onMouseLeave={e => (e.currentTarget.style.background = LIME)}>
+              Contattaci <span>→</span>
+            </a>
+          </motion.div>
         </div>
       </section>
 
