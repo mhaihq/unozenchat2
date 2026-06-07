@@ -11,6 +11,7 @@ import { CourseView } from "./components/CourseView";
 import { HomePage } from "./components/HomePage";
 import { CoursePageOndemand } from "./components/CoursePageOndemand";
 import { CoursePageLive } from "./components/CoursePageLive";
+import { CoursePageAiLiteracy } from "./components/CoursePageAiLiteracy";
 import { supabase, EDGE_FUNCTION_URL } from "./lib/supabase";
 import { createSession, sendMessage, fetchDocuments } from "./lib/api";
 import type { AppView, Document, Message } from "./lib/types";
@@ -243,11 +244,18 @@ export default function App() {
         onBack={() => setView("home")}
       />
     );
+    if (view === "course-page-ai-literacy") return (
+      <CoursePageAiLiteracy
+        onLogin={() => setView("auth")}
+        onBack={() => setView("home")}
+      />
+    );
     return (
       <HomePage
         onLogin={() => setView("auth")}
         onCourseOndemand={() => setView("course-page-ondemand")}
         onCourseLive={() => setView("course-page-live")}
+        onCourseAiLiteracy={() => setView("course-page-ai-literacy")}
       />
     );
   }

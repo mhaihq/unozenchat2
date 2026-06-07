@@ -15,7 +15,7 @@ export interface Document {
 
 export type UploadStatus = "idle" | "reading" | "processing" | "done" | "error";
 
-export type AppView = "home" | "course-page-ondemand" | "course-page-live" | "dashboard" | "course" | "admin" | "auth";
+export type AppView = "home" | "course-page-ondemand" | "course-page-live" | "course-page-ai-literacy" | "dashboard" | "course" | "admin" | "auth";
 
 // ─── LMS types ────────────────────────────────────────────────────────────────
 

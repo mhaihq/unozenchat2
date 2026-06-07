@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useEffect } from "react";
 import { CheckoutButton } from "./CheckoutButton";
 
 const LOGO = "https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6940768c2d599f371637f2b7_Untitled%20design%20(7)-p-500.png";
@@ -22,6 +23,11 @@ interface Props {
 }
 
 export function CoursePageLive({ onLogin, onBack }: Props) {
+  // Open at the top regardless of the previous page's scroll position.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen font-sans" style={{ background: BG, color: NAVY }}>
 

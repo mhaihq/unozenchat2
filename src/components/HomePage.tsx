@@ -189,17 +189,18 @@ interface Props {
   onLogin: () => void;
   onCourseOndemand: () => void;
   onCourseLive: () => void;
+  onCourseAiLiteracy: () => void;
 }
 
-export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
+export function HomePage({ onLogin, onCourseOndemand, onCourseLive, onCourseAiLiteracy }: Props) {
   return (
     <div className="min-h-screen font-sans" style={{ background: BG, color: NAVY }}>
 
-      {/* AI Act compliance bar */}
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 51, background: "#C25E32", color: "#fff", borderBottom: "1px solid rgba(0,0,0,0.12)" }}
+      {/* AI Act value bar */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 51, background: NAVY, color: "rgba(255,255,255,0.92)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}
         className="flex items-center justify-center px-5 md:px-10 text-center" >
         <p style={{ fontSize: 12, lineHeight: 1.35, fontWeight: 500, padding: "7px 0" }}>
-          <strong style={{ fontWeight: 700 }}>Art. 4 AI Act:</strong> l'obbligo di formazione è già in vigore. I controlli partono ad agosto 2026.
+          <span style={{ color: LIME, fontWeight: 700 }}>Conforme all'AI Act</span> · formazione pensata per chi lavora nella salute.
         </p>
       </div>
 
@@ -275,7 +276,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
             className="grid grid-cols-1 sm:grid-cols-3"
             style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${BORDER}`, background: WHITE, boxShadow: "0 2px 20px rgba(0,0,0,0.05)", textAlign: "left" }}>
             {[
-              { value: "4.9 / 5", label: "Valutazione media", sub: "★★★★★  basata su oltre 200 iscritti" },
+              { value: "4.9 / 5", label: "Valutazione media", sub: "Basata su oltre 200 iscritti" },
               { value: "200+",    label: "Professionisti formati", sub: "Psicologi, operatori sanitari, insegnanti" },
               { value: "100%",    label: "Conforme GDPR", sub: "Dati elaborati in Europa · AI in italiano" },
             ].map((stat, i) => (
@@ -318,11 +319,11 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
                 badge: "Conforme Art. 4",
                 badgeStyle: { background: "rgba(217,123,74,0.12)", border: "1px solid rgba(217,123,74,0.3)", color: "#C25E32" },
                 title: "AI Literacy & AI Act",
-                desc: "Formazione documentabile per mettere in regola la tua professione. Attestato incluso. Aperto a tutti gli operatori sanitari, non solo agli psicologi. ECM in accreditamento.",
+                desc: "Una base solida e documentabile per usare l'AI con competenza nella tua professione. Attestato incluso. Aperto a tutti gli operatori sanitari, non solo agli psicologi. ECM in accreditamento.",
                 tags: ["8 ore", "Operatori sanitari", "Attestato", "ECM in arrivo"],
                 metaLabel: "Obbligo Art. 4",
                 metaValue: "8 ore",
-                cta: { label: "Richiedi info", href: "#b2b", variant: "dark" as const },
+                cta: { label: "Scopri il corso", onClick: onCourseAiLiteracy, variant: "dark" as const },
               },
               {
                 dark: false,
@@ -429,6 +430,13 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
                         onMouseLeave={e => { if (c.cta.variant === "lime") e.currentTarget.style.background = LIME; else e.currentTarget.style.opacity = "1"; }}>
                         {c.cta.label} <span>→</span>
                       </a>
+                    ) : c.cta.variant === "dark" ? (
+                      <button onClick={c.cta.onClick}
+                        style={{ background: NAVY, color: "#fff", border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "opacity 0.15s", display: "inline-flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}
+                        className="md:w-full md:justify-center"
+                        onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")} onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
+                        {c.cta.label} <span>→</span>
+                      </button>
                     ) : (
                       <button onClick={c.cta.onClick}
                         style={{ background: LIME, color: NAVY, border: "none", borderRadius: 999, padding: "11px 22px", fontSize: 14, fontWeight: 600, cursor: "pointer", transition: "background 0.15s", display: "inline-flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}
@@ -510,8 +518,7 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
               </div>
               <div style={{ width: 1, height: 40, background: BORDER }} />
               <div>
-                <div style={{ color: "#F5A623", fontSize: 16, letterSpacing: 3, lineHeight: 1 }}>★★★★★</div>
-                <div style={{ fontSize: 12, color: FAINT, marginTop: 6 }}>200+ professionisti</div>
+                <div style={{ fontSize: 12, color: FAINT }}>200+ professionisti</div>
               </div>
             </motion.div>
           </div>
@@ -545,10 +552,9 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
                     ),
                   }}>
 
-                  {/* Top: quote + stars */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                  {/* Top: quote mark */}
+                  <div style={{ marginBottom: 16 }}>
                     <div className="font-serif" style={{ fontSize: 52, lineHeight: 0.75, color: r.featured ? LIME : SURFACE2, fontWeight: 700, userSelect: "none" }}>"</div>
-                    <div style={{ color: "#F5A623", fontSize: 12, letterSpacing: "0.2em" }}>★★★★★</div>
                   </div>
 
                   {/* Quote text */}
@@ -578,33 +584,11 @@ export function HomePage({ onLogin, onCourseOndemand, onCourseLive }: Props) {
 
       {/* Chi siamo */}
       <section id="chi-siamo" style={{ background: WHITE, borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }} className="py-16 md:py-24">
-        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 960 }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-
-            {/* Photos — staggered stack */}
-            <div style={{ position: "relative", height: 420 }} className="hidden md:block">
-              <motion.div
-                initial={{ opacity: 0, y: -12, rotate: -2 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}
-                style={{ position: "absolute", top: 0, left: "10%", width: 220, borderRadius: 4, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.13)", border: `3px solid ${WHITE}`, transform: "rotate(-3deg)" }}>
-                <img
-                  src="https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6935ed01e1dd66f3db9dad0d_Matteo%20Grassi.jpg"
-                  alt="Alessandro Lombardo"
-                  style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", filter: "grayscale(20%)" }}
-                />
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, y: 12, rotate: 2 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.12 }}
-                style={{ position: "absolute", bottom: 0, right: "5%", width: 220, borderRadius: 4, overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.13)", border: `3px solid ${WHITE}`, transform: "rotate(2.5deg)" }}>
-                <img
-                  src="https://cdn.prod.website-files.com/6935ed01e1dd66f3db9dacf0/6935ed01e1dd66f3db9dad0d_Matteo%20Grassi.jpg"
-                  alt="Matteo Grassi"
-                  style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", filter: "grayscale(20%)" }}
-                />
-              </motion.div>
-            </div>
+        <div className="mx-auto px-5 md:px-10" style={{ maxWidth: 720 }}>
+          <div>
 
             {/* Text */}
-            <motion.div initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: FAINT, fontFamily: "monospace", display: "inline-block", border: `1px solid ${BORDER}`, borderRadius: 999, padding: "4px 12px", marginBottom: 24 }}>Chi siamo</span>
               <h2 className="font-serif" style={{ fontSize: "clamp(1.8rem,4vw,2.8rem)", fontWeight: 500, lineHeight: 1.1, letterSpacing: "-0.02em", color: NAVY, marginBottom: 36 }}>
                 Costruita da clinici,<br />per <em style={{ fontStyle: "italic", fontWeight: 400 }}>clinici.</em>

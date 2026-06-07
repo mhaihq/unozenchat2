@@ -92,6 +92,11 @@ function AnimatedChatMock() {
     { role: "ai",   text: "Ecco: «Sei un supervisore CBT. Applica il modello ABC — A = situazione, B = pensiero, C = emozione. Caso: [...]»" },
   ];
 
+  // Open at the top regardless of the previous page's scroll position.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     if (chatMode !== "text") return;
     let cancelled = false;
